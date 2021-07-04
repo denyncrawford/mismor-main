@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+
+body, html {
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+}
+
+#app {
+  font-family: "Montserrat", Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  width: 100%;
+  height: 100%;
+}
+
+.slide-leave-active {
+  animation: slideOutLeft; /* referring directly to the animation's @keyframe declaration */
+  animation-duration: .5s; /* don't forget to set a duration! */
+}
+
+.slide-enter-active {
+  animation: slideInRight; /* referring directly to the animation's @keyframe declaration */
+  animation-duration: .5s; /* don't forget to set a duration! */
+}
+
+@tailwind utilities;
