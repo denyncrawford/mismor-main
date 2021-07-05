@@ -249,11 +249,11 @@ export default {
 
 <style scoped>
 .slide-down-enter-active {
-  animation: slideInUp; /* referring directly to the animation's @keyframe declaration */
-  animation-duration: .2s; /* don't forget to set a duration! */
+  animation: fadeInUp; /* referring directly to the animation's @keyframe declaration */
+  animation-duration: .5s; /* don't forget to set a duration! */
 }
 .slide-down-leave-active {
-  animation: slideOutDown; /* referring directly to the animation's @keyframe declaration */
-  animation-duration: .2s; /* don't forget to set a duration! */
+  animation: fadeOutDown; /* referring directly to the animation's @keyframe declaration */
+  animation-duration: .5s; /* don't forget to set a duration! */
 }
 </style>

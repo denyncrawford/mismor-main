@@ -31,6 +31,7 @@
               <th>Entrada</th>
               <th>Salida</th>
               <th>Prioridad</th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody class="text-xs text-center py-5">
@@ -42,13 +43,20 @@
               <td>{{ entry.dates?.start ? formatDate(entry.dates?.start) : "--" }}</td>
               <td>{{ entry.dates?.end ? formatDate(entry.dates?.start) : "--" }}</td>
               <td>{{ entry.priority }}</td>
+              <td> 
+                <div class="flex">
+                  <EyeIcon class="hover:text-blue-700 w-5 h-5 mx-2"/>
+                  <PencilAltIcon class="hover:text-blue-700 w-5 h-5 mx-2"/>
+                  <TrashIcon class="hover:text-blue-700 w-5 h-5 mx-2"/>
+                </div>
+              </td>
             </tr>
           </tbody>
         </table>
         <div class="flex mt-2 py-2 items-center">
           <div class="overflow-hidden ml-auto flex text-xs rounded border-gray-200 border">
             <div @click="paginate(false)" class="hover:bg-black hover:text-white cursor-pointer px-3">Ant.</div>
-            <div class="bg-gray-300 px-3">{{ page + 1 }}</div>
+            <div class="px-3 text-blue-700">{{ page + 1 }}</div>
             <div @click="paginate(true)" class="hover:bg-black hover:text-white cursor-pointer px-3">Prox.</div>
           </div>
           <div class="text-xs mr-5 ml-2">
@@ -63,7 +71,10 @@
 <script>
 import { UsersIcon, 
          PlusIcon,
-         CheckIcon
+         CheckIcon,
+         EyeIcon,
+         TrashIcon,
+         PencilAltIcon
 } from '@heroicons/vue/outline'
 import dayjs from 'dayjs'
 import { database } from './../store.js'
@@ -88,7 +99,10 @@ export default {
   components: {
     UsersIcon, 
     PlusIcon,
-    CheckIcon
+    CheckIcon,
+    EyeIcon,
+    TrashIcon,
+    PencilAltIcon
   },
   methods: {
     async fetchEntries(query) {
@@ -109,3 +123,9 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+td {
+  padding: 7px;
+} 
+</style>
