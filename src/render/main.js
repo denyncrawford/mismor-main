@@ -7,10 +7,12 @@ import './theme/index.css'
 import "animate.css/animate.css";
 import router from './router'
 import { store } from './store'
+import locale from 'element-plus/lib/locale/lang/es'
+import 'dayjs/locale/es'
 
 const app = createApp(App)
 
 app.use(router)
 app.use(store)
-app.use(ElementUI)
+app.use(ElementUI, { locale })
 app.mount('#app')
