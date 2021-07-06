@@ -1,6 +1,14 @@
 import { createStore } from "vuex";
 const { MongoClient } = require("mongodb");
 const Store = require('electron-store')
+const IPFS = require('ipfs-core')
+
+let dataNode;
+export const getDataNode = () => {
+  if (dataNode) return dataNode;
+  dataNode = IPFS.create();
+  return dataNode
+}
 
 export const store = createStore({
   state() {
@@ -10,7 +18,8 @@ export const store = createStore({
       config: {
         host: 'mongodb://localhost:27017',
         name: 'mismor'
-      }
+      },
+      dataNode:""
     }
   },
   mutations: {
@@ -20,6 +29,9 @@ export const store = createStore({
     setConfig(state, payload) {
       state.config = Object.assign(state.config, payload);
     },
+    setDataNode(state, dn) {
+      state.dataNode = dn;
+    }
   }
 })
 

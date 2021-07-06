@@ -79,6 +79,28 @@
           </el-date-picker>
         </div>
       </div>
+      <div class="flex items-center mt-5">
+        <div class="px-5">
+          <h1 class="mb-2">Cantidad</h1>
+          <el-input
+            class="w-32"
+            placeholder="Numero de prendas"
+            v-model="quantity"
+            clearable>
+          </el-input>
+        </div>
+        <div class="px-5">
+          <h1 class="mb-2">Estado</h1>
+          <el-input
+            placeholder="Seleccionar estado"
+            v-model="state"
+            clearable>
+          </el-input>
+        </div>
+        <div class="px-5">
+          <el-progress color="#1d4ed8" type="circle" :percentage="state"></el-progress>
+        </div>
+      </div>
       <div class="flex mt-5">
         <div class="px-5 w-full">
           <h1 class="mb-2">Detalles</h1>
@@ -97,7 +119,7 @@
           <h1 class="mb-2">Archivos</h1>
           <div class="grid grid-cols-3 gap-4">
             <transition-group name="slide-down">
-              <div @mouseenter="file.showActions = true"  @mouseleave="file.showActions = false" v-for="file in assets" :style="{ 'background-image': 'url(' + getFileUrl(file.path) + ')' }" :key="file.uid" class="w-32 h-32 cursor-pointer rounded border bg-cover bg-center bg-no-repeat border-gray-400 border-dashed flex items-center justify-center">
+              <div @mouseenter="file.showActions = true"  @mouseleave="file.showActions = false" v-for="file in assets" :style="{ 'background-image': 'url(' + file.url + ')' }" :key="file.uid" class="w-32 h-32 cursor-pointer rounded border bg-cover bg-center bg-no-repeat border-gray-400 border-dashed flex items-center justify-center">
                 <div v-show="file.showActions" class="flex items-center justify-center w-full h-full bg-opacity-50 bg-gray-900 transition">
                   <div class="flex">
                     <EyeIcon @click="openFile(file)" class="hover:text-blue-700 w-5 h-5 mx-2 text-white"/>
@@ -130,13 +152,17 @@ import { nanoid } from 'nanoid'
 const { join,basename } = require('path');
 const fs = require('fs');
 const { promisify } = require('util');
-const copyFile = promisify(fs.copyFile);
+const readFile = promisify(fs.readFile);
+const writeFile = promisify(fs.writeFile);
 const exists = promisify(fs.exists)
 const mkdir = promisify(fs.mkdir)
+const unlink = promisify(fs.unlink)
 const { app, dialog } = require('electron').remote;
 const programFolder = app.getPath('userData')
 const dataFolder = join(programFolder, '/data')
-import { database } from './../store.js'
+import { database } from './../store.js';
+import { mapState } from "vuex";
+const mime = require('mime');
 export default {
   data() {
     return {
@@ -148,6 +174,8 @@ export default {
       dibujo: '',
       details: '',
       assets: [],
+      quantity: '',
+      state: 30,
       deletedAssets: [],
       dates: {
           start: '',
@@ -160,11 +188,7 @@ export default {
     }
   },
   computed: {
-    getFileUrl() {
-      return (file) => {
-        return new URL(`file:///${file}`).href;
-      }
-    }
+    ...mapState(['dataNode'])
   },
   components: {
     ArrowLeftIcon,
@@ -185,15 +209,11 @@ export default {
       },
       async save() {
           const entries = this.db.collection('entries');
-          const { clients, corte, articulo, dibujo, details, assets: preparedAssets, priority, dates } = this.$data;
+          const { quantity, state, clients, corte, articulo, dibujo, details, assets: preparedAssets, priority, dates } = this.$data;
           const assets = preparedAssets.map(a => {
-            a.origin = a.path
-            a.path = join(dataFolder, `${a.uid}.${a.ext}`)
+            a.url = null;
             return a;
-          })
-          await Promise.all(assets.map(async a => {
-            await copyFile(a.origin , a.path)
-          }))
+          });
           await entries.insert({
             clients,
             corte,
@@ -203,6 +223,8 @@ export default {
             dates,
             assets,
             priority,
+            quantity, 
+            state,
             shortId: nanoid(10)
           })
           this.$router.go(-1)
@@ -215,28 +237,58 @@ export default {
           ]
         });
         const { filePaths } = file;
-        filePaths.forEach(path => {
+        await Promise.all(filePaths.map(async path => {
+          const preparefile = {
+            path: basename(path),
+            content: await readFile(path)
+          }
+          const { cid: { string: fileCid } } = await this.dataNode.add(preparefile);
           this.assets.push({
-            path,
+            path: fileCid,
             ext: path.split('.').pop(),
-            filename: basename(path),
+            filename: preparefile.path,
             uid: nanoid(),
-            showActions: false
+            showActions: false,
+            url: await this.getFileUrl(fileCid, path.split('.').pop())
           })
-        })
+        }))
       },
-      openFile(file) {
-        const filePath = file.path;
-        require('child_process').exec(`start ${filePath}`);
+      async openFile(file) {
+        const joined = await this.ensureFile(file)
+        require('child_process').exec(`start ${joined}`);
       },
-      openFolder(file) {
-        const filePath = file.path;
-        require('child_process').exec(`explorer.exe /select,${filePath}`);
+      async openFolder(file) {
+        const joined = await this.ensureFile(file);
+        require('child_process').exec(`explorer.exe /select,${joined}`);
       },
-      deleteFile(file) {
-        this.deletedAssets = [...this.deletedAssets, ...this.assets.filter(e => e.uid == file.uid)]
+      async ensureFile(file) {
+        const filename = `${file.path}.${file.ext}`;
+        const joined = join(dataFolder, filename)
+        if (!await exists(joined)) {
+          let data = []
+          for await (const chunk of this.dataNode.cat(file.path)) {
+            data = [...data, ...chunk]
+          }
+          await writeFile(joined, Buffer.from(data));
+        }
+        return joined
+      },
+      async deleteFile(file) {
+        const joined = join(dataFolder, `${file.path}.${file.ext}`)
+        this.deletedAssets.push(file)
+        if (await exists(joined)) await unlink(joined)
         this.assets = this.assets.filter(e => e.uid != file.uid)
-      }
+      },
+      async getFileUrl (path, ext) {
+        const mimetype = mime.getType(ext); 
+        var encoding = 'base64';
+        let file = []
+        for await (const chunk of this.dataNode.cat(path)) {
+          file = [...file, ...chunk]
+        }
+        file = Buffer.from(file);
+        return `data:${mimetype};${encoding},${file.toString(encoding)}`;
+      },
   },
   async mounted() {
     if (!await exists(dataFolder)){

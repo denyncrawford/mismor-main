@@ -11,7 +11,7 @@
 import { useRouter } from 'vue-router'
 import Navigation from './components/Navigation.vue'
 import { mapMutations } from "vuex";
-import { persistentStorage as state } from './store';
+import { getDataNode, persistentStorage as state } from './store';
 
 export default {
   name: 'app',
@@ -24,12 +24,14 @@ export default {
     router.push('/')
   },
   methods: {
-    ...mapMutations(['setConfig'])
+    ...mapMutations(['setConfig','setDataNode'])
   },
   async mounted() {
     let config = await state.get("config");
     if (!config) return this.$router.push('/config')
     this.setConfig(config)
+    const dataNode = await getDataNode()
+    this.setDataNode(dataNode)
   },
   components: {
     Navigation
