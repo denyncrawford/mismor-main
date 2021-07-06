@@ -30,7 +30,7 @@ export default {
     let config = await state.get("config");
     if (!config) return this.$router.push('/config')
     this.setConfig(config)
-    const dataNode = await getDataNode()
+    const dataNode = await getDataNode();
     this.setDataNode(dataNode)
   },
   components: {

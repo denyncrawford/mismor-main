@@ -3,12 +3,7 @@ const { MongoClient } = require("mongodb");
 const Store = require('electron-store')
 const IPFS = require('ipfs-core')
 
-let dataNode;
-export const getDataNode = () => {
-  if (dataNode) return dataNode;
-  dataNode = IPFS.create();
-  return dataNode
-}
+export const getDataNode = () => IPFS.create();
 
 export const store = createStore({
   state() {

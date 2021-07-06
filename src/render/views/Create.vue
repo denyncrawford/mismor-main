@@ -119,7 +119,7 @@
           <h1 class="mb-2">Archivos</h1>
           <div class="grid grid-cols-3 gap-4">
             <transition-group name="slide-down">
-              <div @mouseenter="file.showActions = true"  @mouseleave="file.showActions = false" v-for="file in assets" :style="{ 'background-image': 'url(' + file.url + ')' }" :key="file.uid" class="w-32 h-32 cursor-pointer rounded border bg-cover bg-center bg-no-repeat border-gray-400 border-dashed flex items-center justify-center">
+              <div @mouseenter="file.showActions = true"  @mouseleave="file.showActions = false" v-for="file in assets" :style="{ 'background-image': 'url(' + getFileUrl(file.path) + ')' }" :key="file.uid" class="w-32 h-32 cursor-pointer rounded border bg-cover bg-center bg-no-repeat border-gray-400 border-dashed flex items-center justify-center">
                 <div v-show="file.showActions" class="flex items-center justify-center w-full h-full bg-opacity-50 bg-gray-900 transition">
                   <div class="flex">
                     <EyeIcon @click="openFile(file)" class="hover:text-blue-700 w-5 h-5 mx-2 text-white"/>
@@ -151,7 +151,7 @@ import {
 import { nanoid } from 'nanoid'
 const { join,basename } = require('path');
 const fs = require('fs');
-const { promisify } = require('util');
+const { promisify, log } = require('util');
 const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
 const exists = promisify(fs.exists)
@@ -188,7 +188,10 @@ export default {
     }
   },
   computed: {
-    ...mapState(['dataNode'])
+    ...mapState(['dataNode']),
+    getFileUrl () {
+        return path => `https://ipfs.io/ipfs/${path}`
+    },
   },
   components: {
     ArrowLeftIcon,
@@ -242,14 +245,16 @@ export default {
             path: basename(path),
             content: await readFile(path)
           }
-          const { cid: { string: fileCid } } = await this.dataNode.add(preparefile);
+          await this.dataNode.files.write("/"+ preparefile.path, preparefile.content, {
+            create: true
+          });
+          const { cid: { string: fileCid } } = await this.dataNode.files.stat(`/${preparefile.path}`);
           this.assets.push({
             path: fileCid,
             ext: path.split('.').pop(),
             filename: preparefile.path,
             uid: nanoid(),
             showActions: false,
-            url: await this.getFileUrl(fileCid, path.split('.').pop())
           })
         }))
       },
@@ -276,19 +281,10 @@ export default {
       async deleteFile(file) {
         const joined = join(dataFolder, `${file.path}.${file.ext}`)
         this.deletedAssets.push(file)
-        if (await exists(joined)) await unlink(joined)
+        if (await exists(joined)) await unlink(joined);
+        await this.dataNode.files.rm(`/${file.filename}`)
         this.assets = this.assets.filter(e => e.uid != file.uid)
-      },
-      async getFileUrl (path, ext) {
-        const mimetype = mime.getType(ext); 
-        var encoding = 'base64';
-        let file = []
-        for await (const chunk of this.dataNode.cat(path)) {
-          file = [...file, ...chunk]
-        }
-        file = Buffer.from(file);
-        return `data:${mimetype};${encoding},${file.toString(encoding)}`;
-      },
+      }
   },
   async mounted() {
     if (!await exists(dataFolder)){
