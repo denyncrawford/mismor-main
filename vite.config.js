@@ -30,7 +30,9 @@ const config = {
     exclude: [
       'electron-is-dev',
       'electron-store',
-      'ipfs-core'
+      'ipfs-core',
+      'ipfs',
+      'ipfs-http-client'
     ]
   },
 }
