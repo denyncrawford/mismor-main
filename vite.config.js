@@ -30,6 +30,7 @@ const config = {
     exclude: [
       'electron-is-dev',
       'electron-store',
+      'ipfs-core'
     ]
   },
 }
