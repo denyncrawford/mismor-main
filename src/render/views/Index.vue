@@ -46,7 +46,7 @@
               <td> 
                 <div class="flex">
                   <EyeIcon class="hover:text-blue-700 w-5 h-5 mx-2"/>
-                  <PencilAltIcon class="hover:text-blue-700 w-5 h-5 mx-2"/>
+                  <router-link :to="{ name: 'edit', params: { id: entry.shortId }}"> <PencilAltIcon class="hover:text-blue-700 w-5 h-5 mx-2"/> </router-link>
                   <TrashIcon class="hover:text-blue-700 w-5 h-5 mx-2"/>
                 </div>
               </td>

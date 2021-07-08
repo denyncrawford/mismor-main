@@ -15,7 +15,15 @@ const router = createRouter({
         name: 'create',
         component: () => import("./views/Create.vue"),
         meta: {
-            title: 'Ingresar remito'
+            title: 'Ingresar registro'
+        }
+    },
+    {
+        path: '/edit/:id',
+        name: 'edit',
+        component: () => import("./views/Editar.vue"),
+        meta: {
+            title: 'Editar registro'
         }
     },
     {
