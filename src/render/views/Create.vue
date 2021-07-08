@@ -190,7 +190,7 @@ export default {
   computed: {
     ...mapState(['dataNode']),
     getFileUrl () {
-        return path => `https://ipfs.io/ipfs/${path}`
+        return path => `http://localhost:8080/ipfs/${path}`
     },
   },
   components: {

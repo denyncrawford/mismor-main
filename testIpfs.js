@@ -33,7 +33,20 @@ const getDataNode = async (port) => {
     ipfsHttpModule,
     remote: true,
     type: 'js',
-    endpoint: `http://127.0.0.1:${port}`
+    endpoint: `http://127.0.0.1:${port}`,
+    ipfsOptions: {
+      config: {
+        API: {
+          HTTPHeaders: {
+            "Access-Control-Allow-Origin": [
+              "*"
+            ],
+            "Access-Control-Allow-Methods": ["PUT", "POST", "GET", "DELETE"],
+            "Access-Control-Allow-Credentials": true,
+          }
+        }
+      }
+    }
   })
   //console.log(ipfsd);
   return ipfsd.api
@@ -42,3 +55,27 @@ const getDataNode = async (port) => {
 getDataNode(5001).then(fs => {
   //console.log(fs);
 })
+
+   // const getDataNode = async (port) => {
+  //   const ipfsd = await createController({
+  //     ipfsHttpModule,
+  //     ipfsBin,
+  //     remote: false,
+  //     type: 'js',
+  //     ipfsOptions: {
+  //       config: {
+  //         API: {
+  //           HTTPHeaders: {
+  //             "Access-Control-Allow-Origin": [
+  //               "*"
+  //             ],
+  //             "Access-Control-Allow-Methods": ["PUT", "POST", "GET", "DELETE"],
+  //             "Access-Control-Allow-Credentials": true,
+  //           }
+  //         }
+  //       }
+  //     }
+  //   })
+  //   console.log(ipfsd);
+  //   return ipfsd.api
+  // };

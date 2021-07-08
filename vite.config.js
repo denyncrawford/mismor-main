@@ -32,7 +32,8 @@ const config = {
       'electron-store',
       'ipfs-core',
       'ipfs',
-      'ipfs-http-client'
+      'ipfs-http-client',
+      'ipfsd-ctl'
     ]
   },
 }
