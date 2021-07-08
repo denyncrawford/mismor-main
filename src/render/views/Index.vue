@@ -125,7 +125,7 @@ export default {
 </script>
 
 <style scoped>
-td {
+td, th {
   padding: 7px;
 } 
 </style>

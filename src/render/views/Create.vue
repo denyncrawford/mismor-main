@@ -162,7 +162,6 @@ const programFolder = app.getPath('userData')
 const dataFolder = join(programFolder, '/data')
 import { database } from './../store.js';
 import { mapState } from "vuex";
-const mime = require('mime');
 export default {
   data() {
     return {
@@ -184,6 +183,20 @@ export default {
       priority: 0,
       form: {
           loading: false,
+          validations: {
+            clients: {
+              validate: () => {
+                return this.clients.length ? true : false;
+              },
+              message: 'El registro debe de tener al menos un cliente'
+            },
+            dates: {
+              validate: () => {
+                return this.dates.start ? true : false;
+              },
+              message: 'Por favor elige la fecha de entrada'
+            }
+          }
       }
     }
   },
@@ -212,12 +225,8 @@ export default {
       },
       async save() {
           const entries = this.db.collection('entries');
-          const { quantity, state, clients, corte, articulo, dibujo, details, assets: preparedAssets, priority, dates } = this.$data;
-          const assets = preparedAssets.map(a => {
-            a.url = null;
-            return a;
-          });
-          await entries.insert({
+          const { quantity, state, clients, corte, articulo, dibujo, details, assets, priority, dates } = this.$data;
+          const prepared = {
             clients,
             corte,
             articulo,
@@ -229,7 +238,19 @@ export default {
             quantity, 
             state,
             shortId: nanoid(10)
-          })
+          }
+          for (const key of Object.keys(this.form.validations)) {
+            const { validate, message } = this.form.validations[key]
+            if (!validate()) {
+              return this.$notify({
+                title: 'Falta campo requerido',
+                message,
+                type: 'error',
+                position: 'bottom-right'
+              });
+            }
+          }
+          await entries.insert(prepared)
           this.$router.go(-1)
       },
       async selectFile() {

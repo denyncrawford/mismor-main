@@ -88,7 +88,7 @@
     "sass": "^1.26.10",
     "tailwindcss": "^2.2.4",
     "typescript": "^3.9.7",
-    "vite": "latest",
+    "vite": "2.3.7",
     "wait-on": "^5.2.1"
   },
   "keywords": [
