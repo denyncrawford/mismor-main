@@ -52,7 +52,7 @@ export default {
     ...mapState(['visibleBack'])
   },
   methods: {
-    ...mapMutations(['setConfig'])
+    ...mapMutations(['setConfig','toggleLoading'])
   },
   async mounted() {
     let config = await state.get("config");
@@ -61,10 +61,12 @@ export default {
   },
   methods: {
     async next() {
-      await state.set("config", this.config);
+      this.$store.commit('toggleLoading')
+      state.set("config", this.config);
       this.$store.commit('setConfig', this.config)
       await this.$store.state.DBDriver.reconnect();
-      !this.fisrtLoad ? this.$router.go(-1) : this.$router.push('/')
+      this.$store.commit('toggleLoading')
+      !this.fisrtLoad ? this.$router.go(-1) : this.$router.push('/dashboard')
     }
   }
 }

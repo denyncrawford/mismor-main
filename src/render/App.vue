@@ -37,13 +37,16 @@ export default {
     ...mapState(['DBDriver'])
   },
   async mounted() {
-    let config = await state.get("config");
-    if (!config) return this.$router.push('/config')
-    this.setConfig(config);
-    this.setDriver(new Driver())
+    const config = await state.get("config");
+    this.setDriver(new Driver());
     const dataNode = await getDataNode(5001);
-    await this.DBDriver.connect();
     this.setDataNode(dataNode);
+    if (!config) {
+      this.toggleLoading()
+      return this.$router.push('/config')
+    }
+    this.setConfig(config);
+    await this.DBDriver.connect();
     this.toggleLoading()
     this.$router.push('/dashboard')
   },
