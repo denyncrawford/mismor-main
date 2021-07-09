@@ -98,7 +98,7 @@
           </el-input>
         </div>
         <div class="px-5">
-          <el-progress color="#1d4ed8" type="circle" :percentage="state"></el-progress>
+          <el-progress color="#1d4ed8" type="circle" :percentage="Number(state)"></el-progress>
         </div>
       </div>
       <div class="flex mt-5">

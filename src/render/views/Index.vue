@@ -47,7 +47,16 @@
                 <div class="flex">
                   <EyeIcon class="hover:text-blue-700 w-5 h-5 mx-2"/>
                   <router-link :to="{ name: 'edit', params: { id: entry.shortId }}"> <PencilAltIcon class="hover:text-blue-700 w-5 h-5 mx-2"/> </router-link>
-                  <TrashIcon class="hover:text-blue-700 w-5 h-5 mx-2"/>
+                  <el-popconfirm
+                    title="Por favor confirmar el borrado de este item."
+                    @confirm="removeEntry(entry.shortId)"
+                  >
+                    <template #reference>
+                      <div>
+                        <TrashIcon class="hover:text-blue-700 w-5 h-5 mx-2"/>
+                      </div>
+                    </template>
+                  </el-popconfirm>
                 </div>
               </td>
             </tr>
@@ -106,9 +115,14 @@ export default {
   },
   methods: {
     async fetchEntries(query) {
-      const entries = this.db.collection("entries")
+      const entries = this.db.collection("entries");
       this.totalPages = Math.ceil(Number(await entries.count()) / this.maxPageView);
-      this.entries = await entries.find(query).skip(this.pageSkip).limit(this.maxPageView).toArray()
+      this.entries = await entries.find(query).skip(this.pageSkip).limit(this.maxPageView).sort({_id: -1}).toArray()
+    },
+    async removeEntry(shortId) {
+      const entries = this.db.collection("entries");
+      await entries.deleteOne({ shortId });
+      await this.fetchEntries();
     },
     async paginate(n) {
       if (this.page === 0 && !n || this.page === this.totalPages - 1 && n) return
