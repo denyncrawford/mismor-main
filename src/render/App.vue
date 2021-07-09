@@ -5,11 +5,13 @@
       <component :is="Component" />
     </transition>
   </router-view>
+  <Loading/>
 </template>
 
 <script>
 import { useRouter } from 'vue-router'
 import Navigation from './components/Navigation.vue'
+import Loading from './components/Loading.vue'
 import { mapMutations } from "vuex";
 import { getDataNode, persistentStorage as state } from './store';
 
@@ -24,17 +26,19 @@ export default {
     router.push('/')
   },
   methods: {
-    ...mapMutations(['setConfig','setDataNode'])
+    ...mapMutations(['setConfig','setDataNode','toggleLoading'])
   },
   async mounted() {
     let config = await state.get("config");
     if (!config) return this.$router.push('/config')
     this.setConfig(config)
     const dataNode = await getDataNode(5001);
-    this.setDataNode(dataNode)
+    this.setDataNode(dataNode);
+    this.toggleLoading()
   },
   components: {
-    Navigation
+    Navigation,
+    Loading
   }
 }
 </script>

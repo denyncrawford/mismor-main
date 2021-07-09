@@ -22,10 +22,18 @@ export const getDataNode = async (port) => {
             "Access-Control-Allow-Credentials": true,
           }
         },
-        Addresses: { Gateway: "/ip4/127.0.0.1/tcp/8080", API: "/ip4/127.0.0.1/tcp/5001" }
+        Addresses: { 
+          Swarm: [
+            "/ip4/0.0.0.0/tcp/4002",
+            "/ip4/127.0.0.1/tcp/4003/ws"
+          ],
+          Gateway: "/ip4/127.0.0.1/tcp/8080", 
+          API: "/ip4/127.0.0.1/tcp/5001" 
+        }
       }
     }
   })
+  console.log(ipfsd);
   return ipfsd.api
 }
 
@@ -38,7 +46,8 @@ export const store = createStore({
         host: 'mongodb://localhost:27017',
         name: 'mismor'
       },
-      dataNode:""
+      dataNode:"",
+      loading: true
     }
   },
   mutations: {
@@ -50,6 +59,9 @@ export const store = createStore({
     },
     setDataNode(state, dn) {
       state.dataNode = dn;
+    },
+    toggleLoading(state) {
+      state.loading = !state.loading
     }
   }
 })

@@ -25,4 +25,8 @@ body, html {
   animation-duration: .5s; /* don't forget to set a duration! */
 }
 
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
 @tailwind utilities;
