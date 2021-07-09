@@ -12,8 +12,8 @@
 import { useRouter } from 'vue-router'
 import Navigation from './components/Navigation.vue'
 import Loading from './components/Loading.vue'
-import { mapMutations } from "vuex";
-import { getDataNode, persistentStorage as state } from './store';
+import { mapMutations, mapState } from "vuex";
+import { getDataNode, persistentStorage as state, DBDriver as Driver } from './store';
 
 export default {
   name: 'app',
@@ -26,15 +26,26 @@ export default {
     router.push('/')
   },
   methods: {
-    ...mapMutations(['setConfig','setDataNode','toggleLoading'])
+    ...mapMutations([
+      'setConfig',
+      'setDataNode',
+      'toggleLoading',
+      'setDriver'
+      ])
+  },
+  computed: {
+    ...mapState(['DBDriver'])
   },
   async mounted() {
     let config = await state.get("config");
     if (!config) return this.$router.push('/config')
-    this.setConfig(config)
+    this.setConfig(config);
+    this.setDriver(new Driver())
     const dataNode = await getDataNode(5001);
+    await this.DBDriver.connect();
     this.setDataNode(dataNode);
     this.toggleLoading()
+    this.$router.push('/dashboard')
   },
   components: {
     Navigation,

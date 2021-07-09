@@ -4,10 +4,18 @@ const router = createRouter({
   routes: [
     {
         path: '/',
-        name: 'index',
+        name: 'loading',
+        component: () => import("./components/Loading.vue"),
+        meta: {
+            title: 'Cargando...'
+        }
+    },
+    {
+        path: '/dashboard',
+        name: 'dashboard',
         component: () => import("./views/Index.vue"),
         meta: {
-            title: 'Sistema de control'
+            title: 'Panel de control'
         }
     },
     {

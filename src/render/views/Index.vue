@@ -86,7 +86,7 @@ import { UsersIcon,
          PencilAltIcon
 } from '@heroicons/vue/outline'
 import dayjs from 'dayjs'
-import { database } from './../store.js'
+import { mapState } from 'vuex'
 export default {
   data() {
     return {
@@ -103,7 +103,8 @@ export default {
     },
     formatDate() {
       return date => dayjs(date).format('DD-MM-YYYY')
-    }
+    },
+    ...mapState(['DBDriver'])
   },
   components: {
     UsersIcon, 
@@ -132,7 +133,7 @@ export default {
     }
   },
   async mounted() {
-    this.db = await database();
+    this.db = await this.DBDriver.getDb()
     await this.fetchEntries({})
   }
 }

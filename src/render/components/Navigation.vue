@@ -2,7 +2,7 @@
   <div class="px-10 py-5 flex">
     <router-link as="h1" to="/" class="text-2xl font-bold hover:text-blue-700">Mismor</router-link>
     <div class="ml-auto flex">
-      <router-link to="/" class="group cursor-pointer ml-5">
+      <router-link to="/dashboard" class="group cursor-pointer ml-5">
         <HomeIcon class="h-5 w-5 group-hover:text-blue-700 text-gray-500"/>
       </router-link>
       <router-link to="/config" class="group ml-5 cursor-pointer">

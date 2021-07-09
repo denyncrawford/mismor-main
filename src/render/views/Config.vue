@@ -60,9 +60,10 @@ export default {
     this.config = Object.assign(this.config, config);
   },
   methods: {
-    next() {
-      state.set("config", this.config);
+    async next() {
+      await state.set("config", this.config);
       this.$store.commit('setConfig', this.config)
+      await this.$store.state.DBDriver.reconnect();
       !this.fisrtLoad ? this.$router.go(-1) : this.$router.push('/')
     }
   }

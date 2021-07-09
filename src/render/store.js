@@ -5,7 +5,7 @@ const { createController } = require('ipfsd-ctl')
 const ipfsHttpModule = require('ipfs-http-client');
 const ipfsBin = require.resolve('ipfs/src/cli.js');
 
-export const getDataNode = async (port) => {
+export const getDataNode = async () => {
   const ipfsd = await createController({
     ipfsHttpModule,
     ipfsBin,
@@ -47,6 +47,7 @@ export const store = createStore({
         name: 'mismor'
       },
       dataNode:"",
+      DBDriver: null,
       loading: true
     }
   },
@@ -62,17 +63,32 @@ export const store = createStore({
     },
     toggleLoading(state) {
       state.loading = !state.loading
+    },
+    setDriver(state, db) {
+      state.DBDriver = db
     }
   }
 })
 
-export const persistentStorage = new Store();
+export class DBDriver {
+  constructor() {
+    this.config = store.state.config;
+    this.db = null;
+  }
+  async getDb() {
+    if (this.db) return this.db;
+    await this.connect();
+  }
+  async connect() {
+    const client = new MongoClient(this.config.host, { useNewUrlParser: true, useUnifiedTopology: true });
+    const connection = await client.connect();
+    this.db = connection.db(this.config.name);
+  }
+  async reconnect(config) {
+    this.config = config || store.state.config;
+    this.db = null;
+    await this.connect();
+  }
+}
 
-let instance;
-export const database = async () => {
-  if (instance) return instance;
-  const client = new MongoClient(store.state.config?.host, { useNewUrlParser: true, useUnifiedTopology: true });
-  const connection = await client.connect();
-  instance = connection.db(store.state.config.name)
-  return instance;
-} 
+export const persistentStorage = new Store();
