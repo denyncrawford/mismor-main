@@ -35,31 +35,33 @@
             </tr>
           </thead>
           <tbody class="text-xs text-center py-5">
-            <tr class="py-5 cursor-pointer hover:bg-gray-300" v-for="entry in entries" :key="entry.shortId">
-              <td>{{ entry.clients.map(e => e.name).join(' ') }}</td>
-              <td>{{ entry.shortId }}</td>
-              <td>{{ entry.corte || "--" }}</td>
-              <td>{{ entry.articulo || "--" }}</td>
-              <td>{{ entry.dates?.start ? formatDate(entry.dates?.start) : "--" }}</td>
-              <td>{{ entry.dates?.end ? formatDate(entry.dates?.start) : "--" }}</td>
-              <td>{{ entry.priority }}</td>
-              <td> 
-                <div class="flex">
-                  <EyeIcon class="hover:text-blue-700 w-5 h-5 mx-2"/>
-                  <router-link :to="{ name: 'edit', params: { id: entry.shortId }}"> <PencilAltIcon class="hover:text-blue-700 w-5 h-5 mx-2"/> </router-link>
-                  <el-popconfirm
-                    title="Por favor confirmar el borrado de este item."
-                    @confirm="removeEntry(entry.shortId, entry.assets)"
-                  >
-                    <template #reference>
-                      <div>
-                        <TrashIcon class="hover:text-blue-700 w-5 h-5 mx-2"/>
-                      </div>
-                    </template>
-                  </el-popconfirm>
-                </div>
-              </td>
-            </tr>
+            <transition-group name="slide-td">
+              <tr class="py-5 cursor-pointer hover:bg-gray-300" v-for="entry in entries" :key="entry.shortId">
+                <td>{{ entry.clients.map(e => e.name).join(' ') }}</td>
+                <td>{{ entry.shortId }}</td>
+                <td>{{ entry.corte || "--" }}</td>
+                <td>{{ entry.articulo || "--" }}</td>
+                <td>{{ entry.dates?.start ? formatDate(entry.dates?.start) : "--" }}</td>
+                <td>{{ entry.dates?.end ? formatDate(entry.dates?.start) : "--" }}</td>
+                <td>{{ entry.priority }}</td>
+                <td> 
+                  <div class="flex">
+                    <EyeIcon class="hover:text-blue-700 w-5 h-5 mx-2"/>
+                    <router-link :to="{ name: 'edit', params: { id: entry.shortId }}"> <PencilAltIcon class="hover:text-blue-700 w-5 h-5 mx-2"/> </router-link>
+                    <el-popconfirm
+                      title="Por favor confirmar el borrado de este item."
+                      @confirm="removeEntry(entry.shortId, entry.assets)"
+                    >
+                      <template #reference>
+                        <div>
+                          <TrashIcon class="hover:text-blue-700 w-5 h-5 mx-2"/>
+                        </div>
+                      </template>
+                    </el-popconfirm>
+                  </div>
+                </td>
+              </tr>
+            </transition-group>
           </tbody>
         </table>
         <div class="flex mt-2 py-2 items-center">
@@ -104,7 +106,7 @@ export default {
     formatDate() {
       return date => dayjs(date).format('DD-MM-YYYY')
     },
-    ...mapState(['DBDriver'])
+    ...mapState(['DBDriver','dataNode'])
   },
   components: {
     UsersIcon, 
@@ -122,9 +124,6 @@ export default {
     },
     async removeEntry(shortId, assets) {
       const entries = this.db.collection("entries");
-      await Promise.all(assets.map(async a => {
-        await this.dataNode.files.rm(`/${a.filename}`)
-      }))
       await entries.deleteOne({ shortId });
       await this.fetchEntries();
     },
@@ -137,7 +136,12 @@ export default {
   },
   async mounted() {
     this.db = await this.DBDriver.getDb()
+    const col = this.db.collection("entries");
+    const stream = col.watch([]);
     await this.fetchEntries({})
+    stream.on('change', async () => {
+      await this.fetchEntries({})
+    })
   }
 }
 </script>
@@ -146,4 +150,15 @@ export default {
 td, th {
   padding: 7px;
 } 
+
+.slide-td-leave-active {
+  animation: slideOutDown; /* referring directly to the animation's @keyframe declaration */
+  animation-duration: .5s; /* don't forget to set a duration! */
+}
+
+.slide-td-enter-active {
+  animation: slideInUp; /* referring directly to the animation's @keyframe declaration */
+  animation-duration: .5s; /* don't forget to set a duration! */
+}
+
 </style>

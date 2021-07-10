@@ -12,6 +12,8 @@ export const getDataNode = async () => {
     remote: false,
     type: 'js',
     ipfsOptions: {
+      init: true,
+      start: true,
       config: {
         API: {
           HTTPHeaders: {
@@ -33,7 +35,6 @@ export const getDataNode = async () => {
       }
     }
   })
-  console.log(ipfsd);
   return ipfsd.api
 }
 
