@@ -2,103 +2,38 @@
   <div class="px-10 w-full absolute">
     <div class="flex items-center mb-5">
       <h1 @click="$router.go(-1)" class="cursor-pointer px-2 py-1"><ArrowLeftIcon class="h-5 w-5 mb-1"/></h1>
-      <h1 class="bg-black text-xs px-2 py-1 text-white">Crear ingreso</h1>
+      <h1 class="bg-black text-xs px-2 py-1 text-white">Crear cliente</h1>
     </div>
-    <h1 class="mb-2">Formulario de ingreso</h1>
+    <h1 class="mb-2">Formulario de cliente</h1>
     <div class="w-9/12 mb-20">
       <div class="flex mt-5">
         <div class="px-5">
-          <h1 class="mb-2">Cliente/s</h1>
-          <el-select
-            v-model="clients" 
-            filterable 
-            multiple 
-            remote
-            :remote-method="fetchClients"
-            :loading="form.loading"
-            placeholder="Seleccionar cliente/s"
-          >
-            <el-option
-            v-for="item in availbleClients"
-            :key="item.id"
-            :label="item.name"
-            :value="{ shortId: item.shortId, name: item.name }">
-            </el-option>
-          </el-select>
-        </div>
-        <div class="px-5">
-          <h1 class="mb-2"># Corte</h1>
+          <h1 class="mb-2">Nombre Cliente</h1>
           <el-input
             class="w-32"
-            placeholder="Numero de corte"
-            v-model="corte"
+            placeholder="Nombre"
+            v-model="name"
             clearable>
           </el-input>
         </div>
         <div class="px-5">
-          <h1 class="mb-2">Articulo</h1>
+          <h1 class="mb-2">Telefono</h1>
           <el-input
-            placeholder="Numero de corte"
-            v-model="articulo"
+            class="w-32"
+            placeholder="Numero de telefono"
+            v-model="phone"
             clearable>
           </el-input>
         </div>
       </div>
       <div class="flex mt-5">
         <div class="px-5">
-          <h1 class="mb-2"># Dibujo</h1>
-          <el-input
-            placeholder="Numero de dibujo"
-            v-model="dibujo"
-            clearable>
-          </el-input>
-        </div>
-        <div class="px-5 flex-grow">
-          <h1 class="mb-2"># Prioridad</h1>
-          <el-slider
-            v-model="priority"
-            :step="20"
-            show-stops
-            show-input>
-          </el-slider>
-        </div>
-      </div>
-      <div class="flex mt-5">
-        <div class="px-5">
-          <h1 class="mb-2">Fechas</h1>
+          <h1 class="mb-2">Fecha de ingreso</h1>
           <el-date-picker
-            v-model="dates.start"
+            v-model="date"
             type="date"
-            placeholder="Fecha de entrada">
+            placeholder="Fecha de ingreso">
           </el-date-picker>
-          <el-date-picker
-            v-model="dates.end"
-            type="date"
-            class="ml-5"
-            placeholder="Fecha de salida">
-          </el-date-picker>
-        </div>
-      </div>
-      <div class="flex items-center mt-5">
-        <div class="px-5">
-          <h1 class="mb-2">Cantidad</h1>
-          <el-input
-            class="w-32"
-            placeholder="Numero de prendas"
-            v-model="quantity"
-            clearable>
-          </el-input>
-        </div>
-        <div class="px-5">
-          <h1 class="mb-2">Estado</h1>
-          <el-input
-            placeholder="Seleccionar estado"
-            v-model="state"
-            clearable>
-          </el-input>
-        </div>
-        <div class="px-5">
-          <el-progress color="#1d4ed8" type="circle" :percentage="Number(state)"></el-progress>
         </div>
       </div>
       <div class="flex mt-5">
@@ -116,7 +51,7 @@
       </div>
       <div class="flex mt-5">
         <div class="px-5">
-          <h1 class="mb-2">Archivos</h1>
+          <h1 class="mb-2">Archivos Relacionados</h1>
           <div class="grid grid-cols-3 gap-4">
             <transition-group name="slide-down">
               <div @mouseenter="file.showActions = true"  @mouseleave="file.showActions = false" v-for="file in assets" :style="{ 'background-image': 'url(' + getFileUrl(file.path) + ')' }" :key="file.uid" class="w-32 h-32 cursor-pointer rounded border bg-cover bg-center bg-no-repeat border-gray-400 border-dashed flex items-center justify-center">
@@ -165,33 +100,24 @@ export default {
   data() {
     return {
       db: '',
-      availbleClients: [],
-      clients: [],
-      corte: '',
-      articulo: '',
-      dibujo: '',
+      name: '',
       details: '',
+      phone: '',
       assets: [],
-      quantity: '',
-      state: 30,
       deletedAssets: [],
-      dates: {
-          start: '',
-          end: ''
-      },
-      priority: 0,
+      date: new Date(),
       form: {
           loading: false,
           validations: {
-            clients: {
+            name: {
               validate: () => {
-                return this.clients.length ? true : false;
+                return this.name ? true : false;
               },
               message: 'El registro debe de tener al menos un cliente'
             },
-            dates: {
+            date: {
               validate: () => {
-                return this.dates.start ? true : false;
+                return this.date ? true : false;
               },
               message: 'Por favor elige la fecha de entrada'
             }
@@ -213,29 +139,15 @@ export default {
     TrashIcon
   },
   methods: {
-      async fetchClients(query) {
-         this.form.loading = true;
-         const clients = this.db.collection('clients');
-         const re = { $regex: query, $options:"i" }
-         this.availbleClients = await clients.find({$or:[{"name": re}, {"id": re}]}).toArray()
-         this.form.loading = false;
-         if (query == '') return this.availbleClients = [];
-      },
       async save() {
-          const entries = this.db.collection('entries');
-          const { quantity, state, clients, corte, articulo, dibujo, details, assets, priority, dates } = this.$data;
+          const clients = this.db.collection('clients');
+          const { name, details, assets, date, phone } = this.$data;
           const prepared = {
-            clients,
-            corte,
-            articulo,
-            dibujo,
+            name,
             details,
-            dates,
+            date,
             assets,
-            priority,
-            quantity, 
-            state,
-            shortId: nanoid(10)
+            phone
           }
           for (const key of Object.keys(this.form.validations)) {
             const { validate, message } = this.form.validations[key]
@@ -248,14 +160,14 @@ export default {
               });
             }
           }
-          await entries.insert(prepared)
+          await this.db.updateOne({ shortId }, {$set: prepared })
           this.$router.go(-1)
       },
       async selectFile() {
          let file = await dialog.showOpenDialog({ 
           properties: ['openFile'],
           filters: [
-            { name: 'Images', extensions: ['jpg', 'png', 'pdf', 'ai', 'psd', 'wep', 'svg'] }
+            { name: 'All Files', extensions: ['*'] }
           ]
         });
         const { filePaths } = file;
@@ -306,10 +218,15 @@ export default {
       }
   },
   async mounted() {
+    const { id: shortId } = this.$route.params
     if (!await exists(dataFolder)){
       await mkdir(dataFolder);
     }
-    this.db = await this.DBDriver.getDb()
+    const db = await this.DBDriver.getDb()
+    this.db = db.collection('clients');
+    const clients = await this.db.findOne({ shortId });
+    if (!clients) return this.$router.go(-1);
+    Object.assign(this.$data, clients);
   }
 }
 </script>

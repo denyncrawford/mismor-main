@@ -49,6 +49,22 @@ const router = createRouter({
       meta: {
           title: 'Configurar'
       }
+    },
+    {
+      path: '/createClient',
+      name: 'createClient',
+      component: () => import("./views/CreateClient.vue"),
+      meta: {
+          title: 'Crear Cliente'
+      }
+    },
+    {
+      path: '/editClient/:id',
+      name: 'editClient',
+      component: () => import("./views/EditClient.vue"),
+      meta: {
+          title: 'Editar Cliente'
+      }
     }
   ],
   scrollBehavior (to, from, savedPosition) {

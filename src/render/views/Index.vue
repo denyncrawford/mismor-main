@@ -36,7 +36,7 @@
           </thead>
           <tbody class="text-xs text-center py-5">
             <tr class="py-5 cursor-pointer hover:bg-gray-300" v-for="entry in entries" :key="entry.shortId">
-              <td>{{ entry.clients.join(' ') }}</td>
+              <td>{{ entry.clients.map(e => e.name).join(' ') }}</td>
               <td>{{ entry.shortId }}</td>
               <td>{{ entry.corte || "--" }}</td>
               <td>{{ entry.articulo || "--" }}</td>
@@ -49,7 +49,7 @@
                   <router-link :to="{ name: 'edit', params: { id: entry.shortId }}"> <PencilAltIcon class="hover:text-blue-700 w-5 h-5 mx-2"/> </router-link>
                   <el-popconfirm
                     title="Por favor confirmar el borrado de este item."
-                    @confirm="removeEntry(entry.shortId)"
+                    @confirm="removeEntry(entry.shortId, entry.assets)"
                   >
                     <template #reference>
                       <div>
@@ -120,8 +120,11 @@ export default {
       this.totalPages = Math.ceil(Number(await entries.count()) / this.maxPageView);
       this.entries = await entries.find(query).skip(this.pageSkip).limit(this.maxPageView).sort({_id: -1}).toArray()
     },
-    async removeEntry(shortId) {
+    async removeEntry(shortId, assets) {
       const entries = this.db.collection("entries");
+      await Promise.all(assets.map(async a => {
+        await this.dataNode.files.rm(`/${a.filename}`)
+      }))
       await entries.deleteOne({ shortId });
       await this.fetchEntries();
     },
