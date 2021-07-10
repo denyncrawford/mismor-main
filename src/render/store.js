@@ -4,6 +4,9 @@ const Store = require('electron-store')
 const { createController } = require('ipfsd-ctl')
 const ipfsHttpModule = require('ipfs-http-client');
 const ipfsBin = require.resolve('ipfs/src/cli.js');
+const { join } = require('path');
+const homedir = require('os').homedir();
+const { app } = require('electron').remote
 
 export const getDataNode = async () => {
   const ipfsd = await createController({
@@ -14,6 +17,7 @@ export const getDataNode = async () => {
     ipfsOptions: {
       init: true,
       start: true,
+      repo: join(homedir, '/.jsipfs'),
       config: {
         API: {
           HTTPHeaders: {
@@ -33,7 +37,17 @@ export const getDataNode = async () => {
           API: "/ip4/127.0.0.1/tcp/5001" 
         }
       }
-    }
+    },
+    disposable: false
+  });
+  await ipfsd.init()
+  await ipfsd.start()
+  app.on('before-quit', async (evt) => {
+    evt.preventDefault()
+    await ipfsd.api.stop()
+  });
+  window.addEventListener('beforeunload', async () => {
+    await ipfsd.api.stop()
   })
   return ipfsd.api
 }
