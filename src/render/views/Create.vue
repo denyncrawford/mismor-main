@@ -16,13 +16,14 @@
             remote
             :remote-method="fetchClients"
             :loading="form.loading"
+            value-key="name"
             placeholder="Seleccionar cliente/s"
           >
             <el-option
             v-for="item in availbleClients"
-            :key="item.id"
+            :key="item.shortId"
             :label="item.name"
-            :value="{ shortId: item.shortId, name: item.name }">
+            :value="prepareClient(item)">
             </el-option>
           </el-select>
         </div>
@@ -204,6 +205,9 @@ export default {
     getFileUrl () {
         return path => `http://localhost:8080/ipfs/${path}`
     },
+    prepareClient() {
+      return item => ({ shortId: item.shortId, name: item.name })
+    }
   },
   components: {
     ArrowLeftIcon,
@@ -217,7 +221,7 @@ export default {
          this.form.loading = true;
          const clients = this.db.collection('clients');
          const re = { $regex: query, $options:"i" }
-         this.availbleClients = await clients.find({$or:[{"name": re}, {"id": re}]}).toArray()
+         this.availbleClients = await clients.find({$or:[{"name": re}, {"id": re}]}).toArray();
          this.form.loading = false;
          if (query == '') return this.availbleClients = [];
       },

@@ -1,7 +1,7 @@
 <template>
   <div class="px-10 w-full absolute">
     <div class="flex items-center mb-5">
-      <h1 @click="$router.go(-1)" class="cursor-pointer px-2 py-1"><ArrowLeftIcon class="h-5 w-5 mb-1"/></h1>
+      <h1 @click="back" class="cursor-pointer px-2 py-1"><ArrowLeftIcon class="h-5 w-5 mb-1"/></h1>
       <h1 class="bg-black text-xs px-2 py-1 text-white">Crear ingreso</h1>
     </div>
     <h1 class="mb-2">Formulario de ingreso</h1>
@@ -16,13 +16,14 @@
             remote
             :remote-method="fetchClients"
             :loading="form.loading"
+            value-key="name"
             placeholder="Seleccionar cliente/s"
           >
             <el-option
             v-for="item in availbleClients"
-            :key="item"
-            :label="item"
-            :value="item">
+            :key="item.shortId"
+            :label="item.name"
+            :value="prepareClient(item)">
             </el-option>
           </el-select>
         </div>
@@ -124,7 +125,7 @@
                   <div class="flex">
                     <EyeIcon @click="openFile(file)" class="hover:text-blue-700 w-5 h-5 mx-2 text-white"/>
                     <FolderIcon @click="openFolder(file)" class="hover:text-blue-700 w-5 h-5 mx-2 text-white"/>
-                    <TrashIcon @click="deleteFile(file)" class="hover:text-blue-700 w-5 h-5 mx-2 text-white"/>
+                    <TrashIcon @click="discartAsset(file)" class="hover:text-blue-700 w-5 h-5 mx-2 text-white"/>
                   </div>
                 </div>
               </div>
@@ -174,7 +175,7 @@ export default {
       assets: [],
       quantity: '',
       state: 30,
-      deletedAssets: [],
+      discartedAssets: [],
       dates: {
           start: '',
           end: ''
@@ -205,6 +206,9 @@ export default {
     getFileUrl () {
         return path => `http://localhost:8080/ipfs/${path}`
     },
+    prepareClient() {
+      return item => ({ shortId: item.shortId, name: item.name })
+    }
   },
   components: {
     ArrowLeftIcon,
@@ -216,14 +220,14 @@ export default {
   methods: {
       async fetchClients(query) {
          this.form.loading = true;
-         const res = await fetch('https://jsonplaceholder.typicode.com/users');
-         const data = await res.json()
-         const re = new RegExp(query, 'i');
-         this.availbleClients = data.map(e => e.name).filter(n => re.test(n))
+         const clients = this.db.collection('clients')
+         const re = { $regex: query, $options:"i" }
+         this.availbleClients = await clients.find({$or:[{"name": re}, {"id": re}]}).toArray()
          this.form.loading = false;
          if (query == '') return this.availbleClients = [];
       },
       async save() {
+          const entries = this.db.collection('entries')
           const { quantity, state, clients, corte, articulo, dibujo, details, assets, priority, dates, shortId } = this.$data;
           const prepared = {
             clients,
@@ -249,8 +253,14 @@ export default {
               });
             }
           }
-          await this.db.updateOne({ shortId }, {$set: prepared })
+          await Promise.all(this.discartedAssets.map(async a => {
+            await this.discartAsset(a)
+          }));
+          await entries.updateOne({ shortId }, {$set: prepared })
           this.$router.go(-1)
+      },
+      async back() {
+        this.$router.go(-1)
       },
       async selectFile() {
          let file = await dialog.showOpenDialog({ 
@@ -298,12 +308,14 @@ export default {
         }
         return joined
       },
+      async discartAsset(file) {
+        this.discartedAssets.push(file);
+        this.assets = this.assets.filter(e => e.uid != file.uid)
+      },
       async deleteFile(file) {
         const joined = join(dataFolder, `${file.path}.${file.ext}`)
-        this.deletedAssets.push(file)
         if (await exists(joined)) await unlink(joined);
         await this.dataNode.files.rm(`/${file.filename}`)
-        this.assets = this.assets.filter(e => e.uid != file.uid)
       }
   },
   async mounted() {
@@ -311,10 +323,10 @@ export default {
     if (!await exists(dataFolder)){
       await mkdir(dataFolder);
     }
-    const db = await this.DBDriver.getDb()
-    this.db = db.collection('entries');
-    const registro = await this.db.findOne({ shortId });
+    this.db = await this.DBDriver.getDb()
+    const registro = await this.db.collection('entries').findOne({ shortId });
     if (!registro) return this.$router.go(-1);
+    this.availbleClients = registro.clients
     Object.assign(this.$data, registro);
   }
 }

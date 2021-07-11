@@ -124,6 +124,13 @@ export default {
     },
     async removeEntry(shortId, assets) {
       const entries = this.db.collection("entries");
+      await Promise.allSettled(assets.map(async a => {
+        try {
+          await this.dataNode.files.rm(`/${a.filename}`);
+        } catch (e) {
+          console.log(e);
+        }
+      }))
       await entries.deleteOne({ shortId });
       await this.fetchEntries();
     },
