@@ -266,18 +266,16 @@ export default {
         });
         const { filePaths } = file;
         await Promise.all(filePaths.map(async path => {
-          const preparefile = {
-            path: basename(path),
-            content: await readFile(path)
-          }
-          await this.dataNode.files.write("/"+ preparefile.path, preparefile.content, {
+          const filepath = `/${basename(path)}`
+          const stream = fs.ReadStream(path)
+          await this.dataNode.files.write(filepath, stream, {
             create: true
           });
-          const { cid: { string: fileCid } } = await this.dataNode.files.stat(`/${preparefile.path}`);
+          const { cid: { string: fileCid } } = await this.dataNode.files.stat(filepath);
           this.assets.push({
             path: fileCid,
             ext: path.split('.').pop(),
-            filename: preparefile.path,
+            filename: basename(path),
             uid: nanoid(),
             showActions: false,
           })
@@ -295,11 +293,11 @@ export default {
         const filename = `${file.path}.${file.ext}`;
         const joined = join(dataFolder, filename)
         if (!await exists(joined)) {
-          let data = []
+          const fStream = fs.createWriteStream(joined);
           for await (const chunk of this.dataNode.cat(file.path)) {
-            data = [...data, ...chunk]
+            fStream.write(chunk)
           }
-          await writeFile(joined, Buffer.from(data));
+          fStream.end();
         }
         return joined
       },
