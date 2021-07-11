@@ -4,7 +4,7 @@
       <h1 @click="$router.go(-1)" class="cursor-pointer px-2 py-1"><ArrowLeftIcon class="h-5 w-5 mb-1"/></h1>
       <h1 class="bg-black text-xs px-2 py-1 text-white">Clientes</h1>
     </div>
-    <h1 class="mb-2">Crear Cliente</h1>
+    <h1 class="mb-2">Editar Cliente</h1>
     <div class="flex mb-5">
       <router-link to="/createClient" class="hover:border-blue-700 hover:text-blue-700 rounded font-bold px-4 py-2 text-sm border border-dashed border-gray-400">
         <PlusIcon class="h-5 w-5 mb-1"/>
@@ -24,31 +24,33 @@
               <th>Acciones</th>
             </tr>
           </thead>
-          <tbody class="text-xs text-center py-5">
-            <tr class="py-5 cursor-pointer hover:bg-gray-300" v-for="client in clients" :key="client.shortId">
-              <td>{{ client.name }}</td>
-              <td>{{ client.shortId }}</td>
-              <td>{{ formatDate(client.date) }}</td>
-              <td>{{ client.phone }}</td>
-              <td> 
-                <div class="flex items-center">
-                  <div class="flex">
-                    <EyeIcon class="hover:text-blue-700 w-5 h-5 mx-2"/>
-                    <router-link :to="{ name: 'editClient', params: { id: client.shortId }}"> <PencilAltIcon class="hover:text-blue-700 w-5 h-5 mx-2"/> </router-link>
-                    <el-popconfirm
-                      title="Por favor confirmar el borrado de este cliente."
-                      @confirm="removeClient(client.shortId, client.assets)"
-                    >
-                      <template #reference>
-                        <div>
-                          <TrashIcon class="hover:text-blue-700 w-5 h-5 mx-2"/>
-                        </div>
-                      </template>
-                    </el-popconfirm>
+          <tbody class="text-xs text-center py-5 overflow-hidden">
+            <transition-group name="slide-td">
+              <tr class="py-5 cursor-pointer hover:bg-gray-300" v-for="client in clients" :key="client.shortId">
+                <td>{{ ellipsis(client.name) }}</td>
+                <td>{{ ellipsis(client.shortId) }}</td>
+                <td>{{ formatDate(client.date) }}</td>
+                <td>{{ ellipsis(client.phone) }}</td>
+                <td> 
+                  <div class="flex items-center">
+                    <div class="flex">
+                      <EyeIcon class="hover:text-blue-700 w-5 h-5 mx-2"/>
+                      <router-link :to="{ name: 'editClient', params: { id: client.shortId }}"> <PencilAltIcon class="hover:text-blue-700 w-5 h-5 mx-2"/> </router-link>
+                      <el-popconfirm
+                        title="Por favor confirmar el borrado de este cliente."
+                        @confirm="removeClient(client.shortId, client.assets)"
+                      >
+                        <template #reference>
+                          <div>
+                            <TrashIcon class="hover:text-blue-700 w-5 h-5 mx-2"/>
+                          </div>
+                        </template>
+                      </el-popconfirm>
+                    </div>
                   </div>
-                </div>
-              </td>
-            </tr>
+                </td>
+              </tr>
+            </transition-group>
           </tbody>
         </table>
         <div class="flex mt-2 py-2 items-center">
@@ -93,7 +95,11 @@ export default {
     formatDate() {
       return date => dayjs(date).format('DD-MM-YYYY')
     },
-    ...mapState(['dataNode','DBDriver'])
+    ...mapState(['dataNode','DBDriver']),
+    ellipsis() {
+      const length = 15;
+      return data => data.length > length ? `${data.substring(0, length)}...` : data;
+    }
   },
   methods: {
     async fetchClients(query) {
@@ -141,4 +147,14 @@ export default {
 td, th {
   padding: 7px;
 } 
+
+.slide-td-leave-active {
+  animation: fadeOutRight; /* referring directly to the animation's @keyframe declaration */
+  animation-duration: .5s; /* don't forget to set a duration! */
+}
+
+.slide-td-enter-active {
+  animation: fadeInLeft; /* referring directly to the animation's @keyframe declaration */
+  animation-duration: .5s; /* don't forget to set a duration! */
+}
 </style>

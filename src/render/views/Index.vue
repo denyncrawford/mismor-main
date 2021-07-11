@@ -34,13 +34,13 @@
               <th>Acciones</th>
             </tr>
           </thead>
-          <tbody class="text-xs text-center py-5">
+          <tbody class="text-xs text-center py-5 overflow-hidden">
             <transition-group name="slide-td">
               <tr class="py-5 cursor-pointer hover:bg-gray-300" v-for="entry in entries" :key="entry.shortId">
-                <td>{{ entry.clients.map(e => e.name).join(' ') }}</td>
-                <td>{{ entry.shortId }}</td>
-                <td>{{ entry.corte || "--" }}</td>
-                <td>{{ entry.articulo || "--" }}</td>
+                <td>{{ ellipsis(entry.clients.map(e => e.name).join(' - ')) }}</td>
+                <td>{{ ellipsis(entry.shortId) }}</td>
+                <td>{{ ellipsis(entry.corte || "--") }}</td>
+                <td>{{ ellipsis(entry.articulo || "--") }}</td>
                 <td>{{ entry.dates?.start ? formatDate(entry.dates?.start) : "--" }}</td>
                 <td>{{ entry.dates?.end ? formatDate(entry.dates?.end) : "--" }}</td>
                 <td>{{ entry.priority }}</td>
@@ -106,7 +106,11 @@ export default {
     formatDate() {
       return date => dayjs(date).format('DD-MM-YYYY')
     },
-    ...mapState(['DBDriver','dataNode'])
+    ...mapState(['DBDriver','dataNode']),
+    ellipsis() {
+      const length = 15;
+      return data => data.length > length ? `${data.substring(0, length)}...` : data;
+    }
   },
   components: {
     UsersIcon, 
@@ -159,12 +163,12 @@ td, th {
 } 
 
 .slide-td-leave-active {
-  animation: slideOutDown; /* referring directly to the animation's @keyframe declaration */
+  animation: fadeOutRight; /* referring directly to the animation's @keyframe declaration */
   animation-duration: .5s; /* don't forget to set a duration! */
 }
 
 .slide-td-enter-active {
-  animation: slideInUp; /* referring directly to the animation's @keyframe declaration */
+  animation: fadeInLeft; /* referring directly to the animation's @keyframe declaration */
   animation-duration: .5s; /* don't forget to set a duration! */
 }
 

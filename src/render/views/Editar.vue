@@ -136,7 +136,7 @@
           </div>
         </div>
       </div>
-      <button @click="save" class="mt-5 ml-5 bg-black text-xs px-2 py-1 text-white">Guardar</button> 
+      <button :disabled="form.disabled" @click="save" class="mt-5 ml-5 bg-black text-xs px-2 py-1 text-white">Guardar</button> 
     </div>
   </div>
 </template>
@@ -184,6 +184,7 @@ export default {
       shortId: nanoid(10),
       form: {
           loading: false,
+          disabled: false,
           validations: {
             clients: {
               validate: () => {
@@ -227,6 +228,7 @@ export default {
          if (query == '') return this.availbleClients = [];
       },
       async save() {
+          this.form.disabled = true;
           const entries = this.db.collection('entries')
           const { quantity, state, clients, corte, articulo, dibujo, details, assets, priority, dates, shortId } = this.$data;
           const prepared = {
