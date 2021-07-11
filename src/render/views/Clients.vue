@@ -127,7 +127,12 @@ export default {
   },
   async mounted() {
     this.db = await this.DBDriver.getDb()
+    const col = this.db.collection('clients')
+    const stream = col.watch([]);
     await this.fetchClients({})
+    stream.on('change', async () => {
+      await this.fetchClients({})
+    })
   }
 }
 </script>

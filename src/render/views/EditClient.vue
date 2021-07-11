@@ -106,6 +106,7 @@ export default {
       assets: [],
       deletedAssets: [],
       date: new Date(),
+      shortId: '',
       form: {
           loading: false,
           validations: {
@@ -140,7 +141,6 @@ export default {
   },
   methods: {
       async save() {
-          const clients = this.db.collection('clients');
           const { name, details, assets, date, phone } = this.$data;
           const prepared = {
             name,
@@ -160,7 +160,7 @@ export default {
               });
             }
           }
-          await this.db.updateOne({ shortId }, {$set: prepared })
+          await this.db.updateOne({ shortId: this.shortId }, { $set: prepared })
           this.$router.go(-1)
       },
       async selectFile() {
@@ -221,7 +221,8 @@ export default {
     const { id: shortId } = this.$route.params
     if (!await exists(dataFolder)){
       await mkdir(dataFolder);
-    }
+    };
+    this.shortId = shortId;
     const db = await this.DBDriver.getDb()
     this.db = db.collection('clients');
     const clients = await this.db.findOne({ shortId });

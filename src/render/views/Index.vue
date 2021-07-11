@@ -42,7 +42,7 @@
                 <td>{{ entry.corte || "--" }}</td>
                 <td>{{ entry.articulo || "--" }}</td>
                 <td>{{ entry.dates?.start ? formatDate(entry.dates?.start) : "--" }}</td>
-                <td>{{ entry.dates?.end ? formatDate(entry.dates?.start) : "--" }}</td>
+                <td>{{ entry.dates?.end ? formatDate(entry.dates?.end) : "--" }}</td>
                 <td>{{ entry.priority }}</td>
                 <td> 
                   <div class="flex">
