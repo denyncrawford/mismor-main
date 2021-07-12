@@ -40,8 +40,8 @@ export const getDataNode = async () => {
     },
     disposable: false
   });
-  await ipfsd.init()
-  await ipfsd.start()
+  await ipfsd.init();
+  await ipfsd.start();
   app.on('before-quit', async (evt) => {
     evt.preventDefault()
     await ipfsd.api.stop()

@@ -139,7 +139,8 @@ export default {
       await this.fetchEntries();
     },
     async paginate(n) {
-      if (this.page === 0 && !n || this.page === this.totalPages - 1 && n) return
+      if (this.page === 0 && !n || this.page === this.totalPages - 1 && n) return;
+      if (this.page > this.totalPages) this.page = this.totalPages;
       this.page = n ? this.page + 1 : this.page - 1;
       console.log(this.page);
       await this.fetchEntries();
