@@ -19,7 +19,7 @@
       </router-link>
     </div>
     <div class="mb-20">
-      <h1 class="mb-2">Operaciones recientes</h1>
+      <h1 class="mb-2">Todos los Registros</h1>
       <div class="w-full rounded border border-dashed border-gray-400">
         <table class="w-full table-auto">
           <thead class="text-sm py-5">
@@ -64,6 +64,9 @@
             </transition-group>
           </tbody>
         </table>
+        <div class="w-full flex intems-center p-5 justify-center" v-show="!entries.length">
+              <h1 class="text-sm text-gray-400">No hay datos para mostrar.</h1>
+        </div>
         <div class="flex mt-2 py-2 items-center">
           <div class="overflow-hidden ml-auto flex text-xs rounded border-gray-200 border">
             <div @click="paginate(false)" class="hover:bg-black hover:text-white cursor-pointer px-3">Ant.</div>
