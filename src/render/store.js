@@ -92,10 +92,15 @@ export class DBDriver {
   }
   async getDb() {
     if (this.db) return this.db;
+    console.log('lol');
     await this.connect();
+    return this.db;
   }
   async connect() {
-    const client = new MongoClient(this.config.host, { useNewUrlParser: true, useUnifiedTopology: true });
+    const client = new MongoClient(this.config.host, { 
+      useNewUrlParser: true, 
+      useUnifiedTopology: true
+    });
     const connection = await client.connect();
     this.db = connection.db(this.config.name);
   }
