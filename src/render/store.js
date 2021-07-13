@@ -7,9 +7,6 @@ const ipfsBin = require.resolve('ipfs/src/cli.js');
 const { join } = require('path');
 const homedir = require('os').homedir();
 const { app } = require('electron').remote
-const discoveryApiKey = 'b52512af-f662-4dfb-8fd8-d469feb299ee';
-const discoveryUrl = 'https://jsonbin.org/denyncrawford/discovery';
-import dayjs from 'dayjs';
 
 export const getDataNode = async () => {
   const ipfsd = await createController({
