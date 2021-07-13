@@ -46,7 +46,7 @@
                 <td>{{ entry.priority }}</td>
                 <td> 
                   <div class="flex">
-                    <EyeIcon class="hover:text-blue-700 w-5 h-5 mx-2"/>
+                    <EyeIcon @click="publish(entry.shortId)" class="hover:text-blue-700 w-5 h-5 mx-2"/>
                     <router-link :to="{ name: 'edit', params: { id: entry.shortId }}"> <PencilAltIcon class="hover:text-blue-700 w-5 h-5 mx-2"/> </router-link>
                     <el-popconfirm
                       title="Por favor confirmar el borrado de este item."
@@ -148,6 +148,10 @@ export default {
       this.page = n ? this.page + 1 : this.page - 1;
       console.log(this.page);
       await this.fetchEntries();
+    },
+    async publish(id) {
+      await this.dataNode.pubsub.publish('denyncrawford:notification', id)
+
     }
   },
   async mounted() {

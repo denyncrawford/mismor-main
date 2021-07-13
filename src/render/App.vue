@@ -14,7 +14,6 @@ import Navigation from './components/Navigation.vue'
 import Loading from './components/Loading.vue'
 import { mapMutations, mapState } from "vuex";
 import { getDataNode, persistentStorage as state, globalDriver } from './store';
-const Room = require('ipfs-pubsub-room')
 
 export default {
   name: 'app',
@@ -32,7 +31,16 @@ export default {
       'setDataNode',
       'toggleLoading',
       'setDriver'
-      ])
+      ]),
+      handleMessage(msg) {
+        const message = Buffer.from(msg.data).toString();
+        this.$notify({
+          title: 'Nuevo mensaje',
+          message,
+          type: 'success',
+          position: 'bottom-right'
+        });
+      }
   },
   computed: {
     ...mapState(['dataNode'])
@@ -40,11 +48,8 @@ export default {
   async mounted() {
     const config = await state.get("config");
     this.setDataNode(await getDataNode(5001));
-    // console.log(this.dataNode);
-    // const room = new Room(this.dataNode, 'denyncrawford-room-mismor-rta');
-    // room.on('peer joined', (peer) => {
-    //   console.log('Peer joined the room', peer)
-    // })
+    await this.dataNode.pubsub.subscribe('denyncrawford:notification', this.handleMessage);
+    console.log(`subscribed to denyncrawford:notification`)
     if (!config) {
       this.toggleLoading()
       return this.$router.push('/config')
