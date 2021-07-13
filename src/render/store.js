@@ -7,6 +7,9 @@ const ipfsBin = require.resolve('ipfs/src/cli.js');
 const { join } = require('path');
 const homedir = require('os').homedir();
 const { app } = require('electron').remote
+const discoveryApiKey = 'b52512af-f662-4dfb-8fd8-d469feb299ee';
+const discoveryUrl = 'https://jsonbin.org/denyncrawford/discovery';
+import dayjs from 'dayjs';
 
 export const getDataNode = async () => {
   const ipfsd = await createController({
@@ -31,7 +34,7 @@ export const getDataNode = async () => {
         Addresses: { 
           Swarm: [
             "/ip4/0.0.0.0/tcp/4002",
-            "/ip4/127.0.0.1/tcp/4003/ws"
+            "/ip4/127.0.0.1/tcp/4003/ws",
           ],
           Gateway: "/ip4/127.0.0.1/tcp/8080", 
           API: "/ip4/127.0.0.1/tcp/5001" 
@@ -41,7 +44,7 @@ export const getDataNode = async () => {
     disposable: false
   });
   await ipfsd.init();
-  await ipfsd.start();
+  await ipfsd.start()
   app.on('before-quit', async (evt) => {
     evt.preventDefault()
     await ipfsd.api.stop()
@@ -62,7 +65,6 @@ export const store = createStore({
         name: 'mismor'
       },
       dataNode:"",
-      DBDriver: null,
       loading: true
     }
   },
@@ -85,30 +87,34 @@ export const store = createStore({
   }
 })
 
-export class DBDriver {
+class DBDriver {
   constructor() {
     this.config = store.state.config;
+    this.client = null
     this.db = null;
   }
   async getDb() {
-    if (this.db) return this.db;
-    console.log('lol');
+    if (this.db) return this.db
     await this.connect();
     return this.db;
   }
   async connect() {
-    const client = new MongoClient(this.config.host, { 
+    this.client = new MongoClient(this.config.host, { 
       useNewUrlParser: true, 
       useUnifiedTopology: true
     });
-    const connection = await client.connect();
-    this.db = connection.db(this.config.name);
+    this.connection = await this.client.connect();
+    this.db = this.connection.db(this.config.name);
   }
   async reconnect(config) {
     this.config = config || store.state.config;
+    await this.client.close(true);
+    this.connection = null;
     this.db = null;
     await this.connect();
   }
 }
+
+export const globalDriver = new DBDriver();
 
 export const persistentStorage = new Store();

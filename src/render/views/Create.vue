@@ -161,6 +161,7 @@ const unlink = promisify(fs.unlink)
 const { app, dialog } = require('electron').remote;
 const programFolder = app.getPath('userData')
 const dataFolder = join(programFolder, '/data')
+import { globalDriver } from './../store';
 import { mapState } from "vuex";
 export default {
   data() {
@@ -202,7 +203,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(['dataNode','DBDriver']),
+    ...mapState(['dataNode']),
     getFileUrl () {
         return path => `http://localhost:8080/ipfs/${path}`
     },
@@ -294,7 +295,7 @@ export default {
         const joined = join(dataFolder, filename)
         if (!await exists(joined)) {
           const fStream = fs.createWriteStream(joined);
-          for await (const chunk of this.dataNode.cat(file.path)) {
+          for await(const chunk of this.dataNode.cat(file.path)) {
             fStream.write(chunk)
           }
           fStream.end();
@@ -313,7 +314,7 @@ export default {
     if (!await exists(dataFolder)){
       await mkdir(dataFolder);
     }
-    this.db = await this.DBDriver.getDb()
+    this.db = await globalDriver.getDb()
   }
 }
 </script>

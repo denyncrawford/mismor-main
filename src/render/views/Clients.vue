@@ -81,7 +81,8 @@ import { UsersIcon,
          ArrowLeftIcon
 } from '@heroicons/vue/outline'
 import dayjs from 'dayjs'
-import { mapState } from 'vuex'
+import { mapState } from 'vuex';
+import { globalDriver } from "./../store";
 export default {
   data() {
     return {
@@ -98,7 +99,7 @@ export default {
     formatDate() {
       return date => dayjs(date).format('DD-MM-YYYY')
     },
-    ...mapState(['dataNode','DBDriver']),
+    ...mapState(['dataNode']),
     ellipsis() {
       const length = 15;
       return data => data.length > length ? `${data.substring(0, length)}...` : data;
@@ -136,13 +137,8 @@ export default {
     ArrowLeftIcon
   },
   async mounted() {
-    this.db = await this.DBDriver.getDb()
-    const col = this.db.collection('clients')
-    const stream = col.watch([]);
+    this.db = await globalDriver.getDb()
     await this.fetchClients({})
-    stream.on('change', async () => {
-      await this.fetchClients({})
-    })
   }
 }
 </script>

@@ -33,7 +33,8 @@ const config = {
       'ipfs-core',
       'ipfs',
       'ipfs-http-client',
-      'ipfsd-ctl'
+      'ipfsd-ctl',
+      'ipfs-pubsub-room'
     ]
   },
 }

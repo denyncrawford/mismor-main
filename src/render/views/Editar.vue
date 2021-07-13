@@ -153,8 +153,6 @@ import { nanoid } from 'nanoid'
 const { join,basename } = require('path');
 const fs = require('fs');
 const { promisify, log } = require('util');
-const readFile = promisify(fs.readFile);
-const writeFile = promisify(fs.writeFile);
 const exists = promisify(fs.exists)
 const mkdir = promisify(fs.mkdir)
 const unlink = promisify(fs.unlink)
@@ -162,6 +160,7 @@ const { app, dialog } = require('electron').remote;
 const programFolder = app.getPath('userData')
 const dataFolder = join(programFolder, '/data')
 import { mapState } from "vuex";
+import { globalDriver } from "./../store";
 export default {
   data() {
     return {
@@ -203,7 +202,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(['dataNode','DBDriver']),
+    ...mapState(['dataNode']),
     getFileUrl () {
         return path => `http://localhost:8080/ipfs/${path}`
     },
@@ -301,7 +300,7 @@ export default {
         const joined = join(dataFolder, filename)
         if (!await exists(joined)) {
           const fStream = fs.createWriteStream(joined);
-          for await (const chunk of this.dataNode.cat(file.path)) {
+          for await(const chunk of this.dataNode.cat(file.path)) {
             fStream.write(chunk)
           }
           fStream.end();
@@ -323,7 +322,7 @@ export default {
     if (!await exists(dataFolder)){
       await mkdir(dataFolder);
     }
-    this.db = await this.DBDriver.getDb()
+    this.db = await globalDriver.getDb()
     const registro = await this.db.collection('entries').findOne({ shortId });
     if (!registro) return this.$router.go(-1);
     this.availbleClients = registro.clients

@@ -34,7 +34,7 @@
 <script>
 import { ArrowLeftIcon } from '@heroicons/vue/outline'
 import { mapMutations, mapState } from 'vuex'
-import { persistentStorage as state } from './../store';
+import { persistentStorage as state, globalDriver } from './../store';
 export default {
   data() {
     return {
@@ -64,7 +64,7 @@ export default {
       this.$store.commit('toggleLoading')
       state.set("config", this.config);
       this.$store.commit('setConfig', this.config)
-      await this.$store.state.DBDriver.reconnect();
+      await globalDriver.reconnect();
       this.$store.commit('toggleLoading')
       !this.fisrtLoad ? this.$router.go(-1) : this.$router.push('/dashboard')
     }

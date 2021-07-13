@@ -13,7 +13,8 @@ import { useRouter } from 'vue-router'
 import Navigation from './components/Navigation.vue'
 import Loading from './components/Loading.vue'
 import { mapMutations, mapState } from "vuex";
-import { getDataNode, persistentStorage as state, DBDriver as Driver } from './store';
+import { getDataNode, persistentStorage as state, globalDriver } from './store';
+const Room = require('ipfs-pubsub-room')
 
 export default {
   name: 'app',
@@ -34,19 +35,22 @@ export default {
       ])
   },
   computed: {
-    ...mapState(['DBDriver'])
+    ...mapState(['dataNode'])
   },
   async mounted() {
     const config = await state.get("config");
-    this.setDriver(new Driver());
-    const dataNode = await getDataNode(5001);
-    this.setDataNode(dataNode);
+    this.setDataNode(await getDataNode(5001));
+    // console.log(this.dataNode);
+    // const room = new Room(this.dataNode, 'denyncrawford-room-mismor-rta');
+    // room.on('peer joined', (peer) => {
+    //   console.log('Peer joined the room', peer)
+    // })
     if (!config) {
       this.toggleLoading()
       return this.$router.push('/config')
     }
     this.setConfig(config);
-    await this.DBDriver.connect();
+    await globalDriver.connect();
     this.toggleLoading()
     this.$router.push('/dashboard')
   },
