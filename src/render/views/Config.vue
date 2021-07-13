@@ -26,6 +26,26 @@
           </el-input>
          </div>
        </div>
+       <h1 class="mb-2 mt-5">Configuración del nodo</h1>
+       <div class="flex mt-5 w-full">
+         <div class="px-5 w-full">
+           <h1 class="mb-2">Dirección Swarm</h1>
+           <div>
+             <p class="text-xs w-full text-green-700 py-2 px-5 cursor-pointer border border-dashed rounded">{{ dataNodeId }}</p>
+           </div>
+         </div>
+       </div>
+       <div class="flex mt-5 w-full">
+         <div class="px-5 w-full">
+          <h1 class="mb-2">Agregar dirección Swarn</h1>
+          <el-input
+            class="w-64"
+            placeholder="Direccion (Multiaddr)"
+            v-model="currentDirection"
+            clearable>
+          </el-input>
+         </div>
+       </div>
        <button @click="next" class="mt-5 bg-black text-xs px-2 py-1 text-white">Guardar</button>    
     </div>
   </div>
@@ -42,6 +62,8 @@ export default {
         name: '',
         host: ''
       },
+      dataNodeId: '',
+      currentDirection: '',
       fisrtLoad: false
     }
   },
@@ -49,12 +71,13 @@ export default {
     ArrowLeftIcon
   },
   computed: {
-    ...mapState(['visibleBack'])
+    ...mapState(['visibleBack', 'dataNode'])
   },
   methods: {
     ...mapMutations(['setConfig','toggleLoading'])
   },
   async mounted() {
+    this.dataNodeId = this.dataNode.peerId.addresses[0].toString()
     let config = await state.get("config");
     if (!config) this.fisrtLoad = true;
     this.config = Object.assign(this.config, config);
