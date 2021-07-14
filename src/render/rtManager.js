@@ -14,7 +14,7 @@ export default class RtManager extends EventEmitter {
   async subscribe(channel_name) {
     const channelName = `${this._id}:${channel_name}`
     const foundChannel = this._channels.find((v) => v.channelName == channelName);
-    if (typeof foundChannel === undefined) return foundChannel.addSubscriber();
+    if (foundChannel) return foundChannel.addSubscriber();
     const channel = new Channel(channelName, this._pubSub);
     const subscriber = await channel.init();
     this._channels.push(channel)
@@ -45,7 +45,6 @@ class Channel {
 
   async init() {
       const firstSubscriber = new Subscriber(this.pubSub, this.channelName, this.removeSubscriber.bind(this));
-      console.log(firstSubscriber);
       this._subscribers.push(firstSubscriber);
       await this.pubSub.subscribe(this.channelName, async msg => {
           const prepare = JSON.parse(new TextDecoder().decode(msg.data));
