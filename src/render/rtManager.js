@@ -1,53 +1,8 @@
-//import Room  from 'ipfs-pubsub-room';
-import IPFS from 'ipfs'
-import { join }  from 'path';
-import { homedir } from 'os';
+
 import EventEmitter from 'events'
 import { nanoid } from 'nanoid'
 
-const ipfs = await IPFS.create({
-  init: true,
-  start: true,
-  repo: join(homedir(), '/.jsipfs2'),
-  relay: {
-    enabled: true,
-    hop: {
-      enabled: true,
-      active: true
-    }
-  },
-  config: {
-    Routing: {
-      Type: 'dht'
-    },
-    API: {
-      HTTPHeaders: {
-        "Access-Control-Allow-Origin": [
-          "*"
-        ],
-        "Access-Control-Allow-Methods": ["PUT", "POST", "GET", "DELETE"],
-        "Access-Control-Allow-Credentials": true,
-      }
-    },
-    Addresses: { 
-      Swarm: [
-        "/ip4/0.0.0.0/tcp/4004",
-        "/ip4/0.0.0.0/tcp/4005/ws",
-      ],
-      Gateway: "/ip4/0.0.0.0/tcp/8082", 
-      API: "/ip4/127.0.0.1/tcp/5002" 
-    },
-    Discovery: {
-      MDNS: {
-        Enabled: true,
-        Interval: 10
-      }
-    }
-  }
-})
-//const room = new Room(ipfs, 'room-name')
-
-export class RtManager extends EventEmitter {
+export default class RtManager extends EventEmitter {
   constructor (pubSub, identifier) {
     super();
     this._pubSub = pubSub;
@@ -92,9 +47,9 @@ class Channel {
       const firstSubscriber = new Subscriber(this.pubSub, this.channelName, this.removeSubscriber.bind(this));
       console.log(firstSubscriber);
       this._subscribers.push(firstSubscriber);
-      await this.pubSub.subscribe(this.channelName, msg => {
+      await this.pubSub.subscribe(this.channelName, async msg => {
           const prepare = JSON.parse(new TextDecoder().decode(msg.data));
-          this._subscribers.forEach(s => s.emit(prepare.eventName, prepare.data, msg));
+          await Promise.all(this._subscribers.map(s => s.emit(prepare.eventName, prepare.data, msg)))
       })
     return firstSubscriber;
   }
@@ -144,13 +99,3 @@ class Subscriber extends EventEmitter {
     this.off();
   }
 }
-
-const manager = new RtManager(ipfs.pubsub, 'denyncrawford');
-
-const notificationChannel = await manager.subscribe('notifications');
-
-notificationChannel.on('new', msg => console.log(msg))
-
-await notificationChannel.trigger('new', '213')
-
-//notificationChannel.kill()

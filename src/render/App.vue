@@ -17,8 +17,9 @@ import {
   getDataNode, 
   persistentStorage as state, 
   globalDriver,
-  RtManager
 } from './store';
+
+import RtManager from './rtManager.js'
 
 export default {
   name: 'app',
