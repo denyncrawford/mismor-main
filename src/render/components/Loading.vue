@@ -1,5 +1,5 @@
 <template>
-  <div v-show="loading" class="top-0 absolute flex items-center justify-center w-screen h-screen z-50 bg-white">
+  <div v-show="loading" class="top-0 fixed flex items-center justify-center w-screen h-screen z-50 bg-white">
     <div class="flex flex-col items-center text-center justify-center">
       <div class="loading">
         <div v-for="i in 16" :key="i">

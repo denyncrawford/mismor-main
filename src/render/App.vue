@@ -13,7 +13,12 @@ import { useRouter } from 'vue-router'
 import Navigation from './components/Navigation.vue'
 import Loading from './components/Loading.vue'
 import { mapMutations, mapState } from "vuex";
-import { getDataNode, persistentStorage as state, globalDriver } from './store';
+import { 
+  getDataNode, 
+  persistentStorage as state, 
+  globalDriver,
+  RtManager
+} from './store';
 
 export default {
   name: 'app',
@@ -30,10 +35,10 @@ export default {
       'setConfig',
       'setDataNode',
       'toggleLoading',
-      'setDriver'
+      'setDriver',
+      'setRTM'
       ]),
-      handleMessage(msg) {
-        const message = Buffer.from(msg.data).toString();
+      handleMessage(message) {
         this.$notify({
           title: 'Nuevo mensaje',
           message,
@@ -43,13 +48,16 @@ export default {
       }
   },
   computed: {
-    ...mapState(['dataNode'])
+    ...mapState(['dataNode', 'rtm'])
   },
   async mounted() {
     const config = await state.get("config");
     this.setDataNode(await getDataNode(5001));
-    await this.dataNode.pubsub.subscribe('denyncrawford:notification', this.handleMessage);
-    console.log(`subscribed to denyncrawford:notification`)
+    this.setRTM(new RtManager(this.dataNode.pubsub, 'denyncrawford'))
+    const channel = await this.rtm.subscribe('notifications');
+    channel.on('new', (msg) => {
+      this.handleMessage(msg)
+    })
     if (!config) {
       this.toggleLoading()
       return this.$router.push('/config')

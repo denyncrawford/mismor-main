@@ -7,6 +7,8 @@ const ipfsBin = require.resolve('ipfs/src/cli.js');
 const { join } = require('path');
 const homedir = require('os').homedir();
 const { app } = require('electron').remote
+const EventEmitter = require('events');
+const { nanoid } = require('nanoid');
 
 export const getDataNode = async () => {
   const ipfsd = await createController({
@@ -57,7 +59,7 @@ export const getDataNode = async () => {
     disposable: false
   });
   await ipfsd.init();
-  await ipfsd.start()
+  await ipfsd.start();
   app.on('before-quit', async (evt) => {
     evt.preventDefault()
     await ipfsd.api.stop()
@@ -78,6 +80,7 @@ export const store = createStore({
         name: 'mismor'
       },
       dataNode:"",
+      rtm: null,
       loading: true
     }
   },
@@ -96,6 +99,9 @@ export const store = createStore({
     },
     setDriver(state, db) {
       state.DBDriver = db
+    },
+    setRTM(state, rtm) {
+      state.rtm = rtm
     }
   }
 })
@@ -125,6 +131,66 @@ class DBDriver {
     this.connection = null;
     this.db = null;
     await this.connect();
+  }
+}
+
+export class RtManager extends EventEmitter {
+  constructor (pubSub, identifier) {
+    super();
+    this._pubSub = pubSub;
+    this._id = identifier;
+    this._stamp = nanoid()
+    this._subscribers = [];
+  }
+
+  async subscribe(channel) {
+    const channelName = `${this._id}:${channel}`
+    const foundSub = this._subscribers.find((v) => v.channelName == channelName);
+    if (typeof foundSub === undefined) return foundSub;
+    const subscriber = new Subscriber(channelName, this._pubSub);
+    await subscriber.init();
+    this._subscribers.push(subscriber)
+    return subscriber;
+  }
+
+  async unsubscribe(channel) {
+    const channelName = `${this._id}:${channel}`
+    const sub = this._subscribers.find((v) => v.channelName === channelName);
+    if (!sub) return
+    const index = this._subscribers.indexOf(sub);
+    await sub.end();
+    sub.on('end', (...args) => {
+      this.emit('unsubscribed', ...args)
+    })
+    this._subscribers.splice(index, 1);
+  }
+
+}
+
+class Subscriber extends EventEmitter {
+  constructor (channelName, pubSub) {
+    super();
+    this.channelName = channelName;
+    this.pubSub = pubSub;
+    this._id = nanoid();
+  }
+  async init() {
+    await this.pubSub.subscribe(this.channelName, msg => {
+      const prepare = JSON.parse(new TextDecoder().decode(msg.data));
+      this.emit(prepare.eventName, prepare.data, msg)
+    })
+  }
+
+  async trigger(eventName, data) {
+    const prepare = JSON.stringify({ eventName, data });
+    await this.pubSub.publish(this.channelName, prepare)
+  }
+
+  async end() {
+      await this.pubsub.unsubscribe(this.channelName, (msg) => {
+      const prepare = JSON.parse(msg.data.toString());
+      this.emit('end', prepare.data, msg)
+    });
   }
 }
 

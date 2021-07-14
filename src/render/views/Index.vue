@@ -97,6 +97,7 @@ export default {
   data() {
     return {
       db: "",
+      channel: null,
       entries: [],
       page: 0,
       maxPageView: 10,
@@ -110,7 +111,7 @@ export default {
     formatDate() {
       return date => dayjs(date).format('DD-MM-YYYY')
     },
-    ...mapState(['dataNode']),
+    ...mapState(['dataNode','rtm']),
     ellipsis() {
       const length = 15;
       return data => data.length > length ? `${data.substring(0, length)}...` : data;
@@ -146,16 +147,16 @@ export default {
       if (this.page === 0 && !n || this.page === this.totalPages - 1 && n) return;
       if (this.page > this.totalPages) this.page = this.totalPages;
       this.page = n ? this.page + 1 : this.page - 1;
-      console.log(this.page);
       await this.fetchEntries();
     },
     async publish(id) {
-      await this.dataNode.pubsub.publish('denyncrawford:notification', id)
-
+      //await this.dataNode.pubsub.publish('denyncrawford:notification', id)
+      await this.channel.trigger('new', id);
     }
   },
   async mounted() {
     this.db = await globalDriver.getDb()
+    this.channel = await this.rtm.subscribe('notifications');
     await this.fetchEntries({})
   }
 }
