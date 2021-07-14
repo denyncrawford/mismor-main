@@ -18,7 +18,17 @@ export const getDataNode = async () => {
       init: true,
       start: true,
       repo: join(homedir, '/.jsipfs'),
+      relay: {
+        enabled: true,
+        hop: {
+          enabled: true,
+          active: true
+        }
+      },
       config: {
+        Routing: {
+          Type: 'dht'
+        },
         API: {
           HTTPHeaders: {
             "Access-Control-Allow-Origin": [
@@ -33,8 +43,14 @@ export const getDataNode = async () => {
             "/ip4/0.0.0.0/tcp/4002",
             "/ip4/127.0.0.1/tcp/4003/ws",
           ],
-          Gateway: "/ip4/127.0.0.1/tcp/8080", 
+          Gateway: "/ip4/0.0.0.0/tcp/8080", 
           API: "/ip4/127.0.0.1/tcp/5001" 
+        },
+        Discovery: {
+          MDNS: {
+            Enabled: true,
+            Interval: 10
+          }
         }
       }
     },
