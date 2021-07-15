@@ -93,7 +93,6 @@ import { UsersIcon,
 import dayjs from 'dayjs'
 import { mapState } from 'vuex'
 import { globalDriver } from "./../store.js";
-import { onBeforeRouteLeave } from 'vue-router';
 export default {
   data() {
     return {
@@ -153,15 +152,18 @@ export default {
     async publish(id) {
       //await this.dataNode.pubsub.publish('denyncrawford:notification', id)
       await this.channel.trigger('new', id);
+      await this.channel.unsubscribe('notifications')
+      console.log(await this.rtm.ls())
     }
   },
   async mounted() {
     this.db = await globalDriver.getDb()
     this.channel = await this.rtm.subscribe('notifications');
+    await this.rtm.subscribe('messages');
+    console.log(await this.rtm.ls())
     await this.fetchEntries({})
   },
   async beforeRouteLeave() {
-    console.log('lol');
     await this.channel.unsubscribe();
   }
 }

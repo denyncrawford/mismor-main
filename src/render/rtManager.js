@@ -3,11 +3,11 @@ import EventEmitter from 'events'
 import { nanoid } from 'nanoid'
 
 export default class RtManager extends EventEmitter {
-  constructor (pubSub, identifier) {
+  constructor (pubSub, identifier = 'rtm_') {
     super();
     this._pubSub = pubSub;
     this._id = identifier;
-    this._stamp = nanoid()
+    this._stamp = nanoid();
     this._channels = [];
   }
 
@@ -23,16 +23,31 @@ export default class RtManager extends EventEmitter {
 
   async unsubscribe(channel_name) {
     const channelName = `${this._id}:${channel_name}`
-    const sub = this._channels.find((v) => v.channelName === channelName);
-    if (!sub) return
-    const index = this._channels.indexOf(sub);
-    await sub.end();
-    sub.on('end', (...args) => {
-      this.emit('unsubscribed', ...args)
-    })
+    const channel = this._channels.find((v) => v.channelName === channelName);
+    if (!channel) return
+    const index = this._channels.indexOf(channel);
+    await channel.end();
+    const formated = this.format(channel);
+    this.emit('unsubscribed', formated);
     this._channels.splice(index, 1);
+    return formated
   }
 
+  async ls() {
+    return await Promise.all(this._channels.map((v) => { 
+      return this.format(v);
+    }));
+  }
+
+  format(channel) { 
+    return {
+      pubSubChannel: channel.channelName,
+      name: channel.channelName.split(':')[1],
+      identifier: channel.channelName.split(':')[0],
+      id: channel._id,
+      subscribers: channel._subscribers.map((v) => v._id)
+    }
+  }
 }
 
 class Channel {
@@ -55,12 +70,13 @@ class Channel {
   removeSubscriber(id) { 
     const index = this._subscribers.findIndex(s => s._id === id);
     const sub = this._subscribers.find(s => s._id === id);
-    sub.kill()
+    if (index == -1) return;
+    sub.kill();
     this._subscribers.splice(index, 1);
   }
 
   addSubscriber() { 
-    const subscriber = new Subscriber(this.pubSub, this.channelName, this.removeSubscriber.bind(this));
+    const subscriber = new Subscriber(this.pubSub, this.channelName);
     subscriber.on('unsubscribe', (id) => {  
       this.removeSubscriber(id)
     });
@@ -68,24 +84,31 @@ class Channel {
     return subscriber;
   }
 
+  trigger(eventName, data) {
+    this.pubSub.publish(this.channelName, JSON.stringify({
+      eventName,
+      data,
+      stamp: this._id
+    }));
+  }
+
   async end() {
-      await this.pubsub.unsubscribe(this.channelName, (msg) => {
-      const prepare = JSON.parse(msg.data.toString());
-      this._subscribers.forEach((s, i) => { 
-        s.emit(prepare.eventName || 'end', prepare.data, msg)
+    await this.pubSub.unsubscribe(this.channelName, () => {});
+      //evt = msg;
+      this._subscribers.forEach((s) => {
+        s.kill();
         this.removeSubscriber(s._id)
       });
-    });
+    //return { data: JSON.parse(evt.data.toString()), evt };
   }
 }
 
 class Subscriber extends EventEmitter {
-  constructor(pubSub, channelName, removeMethod) {
+  constructor(pubSub, channelName) {
     super();
     this._id = nanoid();
     this._pubSub = pubSub;
     this.channelName = channelName;
-    this.removeMethod = removeMethod;
     this.available = true;
   }
 
@@ -101,6 +124,7 @@ class Subscriber extends EventEmitter {
   
   kill() {
     this.available = false;
-    this.removeAllListeners();
+    this.emit('end', this._id)
+    //this.removeAllListeners();
   }
 }
