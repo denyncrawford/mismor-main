@@ -21,16 +21,16 @@ export default class RtManager extends EventEmitter {
     return subscriber;
   }
 
-  async unsubscribe(channel) {
-    const channelName = `${this._id}:${channel}`
-    const sub = this._subscribers.find((v) => v.channelName === channelName);
+  async unsubscribe(channel_name) {
+    const channelName = `${this._id}:${channel_name}`
+    const sub = this._channels.find((v) => v.channelName === channelName);
     if (!sub) return
-    const index = this._subscribers.indexOf(sub);
+    const index = this._channels.indexOf(sub);
     await sub.end();
     sub.on('end', (...args) => {
       this.emit('unsubscribed', ...args)
     })
-    this._subscribers.splice(index, 1);
+    this._channels.splice(index, 1);
   }
 
 }
@@ -72,9 +72,8 @@ class Channel {
       await this.pubsub.unsubscribe(this.channelName, (msg) => {
       const prepare = JSON.parse(msg.data.toString());
       this._subscribers.forEach((s, i) => { 
-        s.emit('end', prepare.data, msg)
-        s.kill()
-        this._subscribers.splice(i, 1);
+        s.emit(prepare.eventName || 'end', prepare.data, msg)
+        this.removeSubscriber(s._id)
       });
     });
   }
