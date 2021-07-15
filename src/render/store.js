@@ -7,8 +7,6 @@ const ipfsBin = require.resolve('ipfs/src/cli.js');
 const { join } = require('path');
 const homedir = require('os').homedir();
 const { app } = require('electron').remote
-const EventEmitter = require('events');
-const { nanoid } = require('nanoid');
 
 export const getDataNode = async () => {
   const ipfsd = await createController({
@@ -105,34 +103,6 @@ export const store = createStore({
     }
   }
 })
-
-class DBDriver {
-  constructor() {
-    this.config = store.state.config;
-    this.client = null
-    this.db = null;
-  }
-  async getDb() {
-    if (this.db) return this.db
-    await this.connect();
-    return this.db;
-  }
-  async connect() {
-    this.client = new MongoClient(this.config.host, { 
-      useNewUrlParser: true, 
-      useUnifiedTopology: true
-    });
-    this.connection = await this.client.connect();
-    this.db = this.connection.db(this.config.name);
-  }
-  async reconnect(config) {
-    this.config = config || store.state.config;
-    await this.client.close(true);
-    this.connection = null;
-    this.db = null;
-    await this.connect();
-  }
-}
 
 export const globalDriver = new DBDriver();
 

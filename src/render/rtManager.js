@@ -94,12 +94,10 @@ class Channel {
 
   async end() {
     await this.pubSub.unsubscribe(this.channelName, () => {});
-      //evt = msg;
       this._subscribers.forEach((s) => {
         s.kill();
         this.removeSubscriber(s._id)
       });
-    //return { data: JSON.parse(evt.data.toString()), evt };
   }
 }
 
