@@ -44,8 +44,7 @@ class Channel {
   }
 
   async init() {
-      const firstSubscriber = new Subscriber(this.pubSub, this.channelName, this.removeSubscriber.bind(this));
-      this._subscribers.push(firstSubscriber);
+      const firstSubscriber = this.addSubscriber();
       await this.pubSub.subscribe(this.channelName, async msg => {
           const prepare = JSON.parse(new TextDecoder().decode(msg.data));
           await Promise.all(this._subscribers.map(s => s.emit(prepare.eventName, prepare.data, msg)))
@@ -55,11 +54,16 @@ class Channel {
 
   removeSubscriber(id) { 
     const index = this._subscribers.findIndex(s => s._id === id);
+    const sub = this._subscribers.find(s => s._id === id);
+    sub.kill()
     this._subscribers.splice(index, 1);
   }
 
   addSubscriber() { 
     const subscriber = new Subscriber(this.pubSub, this.channelName, this.removeSubscriber.bind(this));
+    subscriber.on('unsubscribe', (id) => {  
+      this.removeSubscriber(id)
+    });
     this._subscribers.push(subscriber);
     return subscriber;
   }
@@ -91,10 +95,13 @@ class Subscriber extends EventEmitter {
     const prepare = JSON.stringify({ eventName, data });
     await this._pubSub.publish(this.channelName, prepare);
   }
+
+  async unsubscribe() {
+    await Promise.resolve(this.emit('unsubscribe', this._id));
+  }
   
   kill() {
     this.available = false;
-    this.removeMethod(this._id);
-    this.off();
+    this.removeAllListeners();
   }
 }

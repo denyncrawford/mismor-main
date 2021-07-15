@@ -93,6 +93,7 @@ import { UsersIcon,
 import dayjs from 'dayjs'
 import { mapState } from 'vuex'
 import { globalDriver } from "./../store.js";
+import { onBeforeRouteLeave } from 'vue-router';
 export default {
   data() {
     return {
@@ -158,6 +159,10 @@ export default {
     this.db = await globalDriver.getDb()
     this.channel = await this.rtm.subscribe('notifications');
     await this.fetchEntries({})
+  },
+  async beforeRouteLeave() {
+    console.log('lol');
+    await this.channel.unsubscribe();
   }
 }
 </script>
