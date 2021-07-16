@@ -27,7 +27,7 @@ export default class RtManager extends EventEmitter {
     if (!channel) return
     const index = this._channels.indexOf(channel);
     await channel.end();
-    const formated = this.format(channel);
+    const formated = this.formatChannel(channel);
     this.emit('unsubscribed', formated);
     this._channels.splice(index, 1);
     return formated
@@ -35,11 +35,39 @@ export default class RtManager extends EventEmitter {
 
   async ls() {
     return await Promise.all(this._channels.map((v) => { 
-      return this.format(v);
+      return this.formatChannel(v);
     }));
   }
 
-  format(channel) { 
+  async removeSubscriberFromChannel(channel_name, subscriber_id) {
+    const channelName = `${this._id}:${channel_name}`
+    const channel = this._channels.find((v) => v.channelName === channelName);
+    if (!channel) return
+    const subscriber = channel.subscribers.find((v) => v.id === subscriber_id);
+    if (!subscriber) return
+    await subscriber.unsubscribe();
+    const formated = this.formatSubscriber(subscriber);
+    this.emit('unsubscribed', formated);
+    return formated
+  }
+
+  formatSubscriber(subscriber) {
+    return {
+      id: subscriber._id,
+      channelName: subscriber.channelName,
+      isSubscribed: subscriber.available    
+    }
+  }
+
+  flushChannels() {
+    const channels = this._channels.filter((v) => v._subscribers.length === 0);
+    channels.forEach((v) => {
+      v.end();
+      this._channels.splice(this._channels.indexOf(v), 1);
+    });
+  }
+
+  formatChannel(channel) { 
     return {
       pubSubChannel: channel.channelName,
       name: channel.channelName.split(':')[1],
@@ -67,7 +95,7 @@ class Channel {
     return firstSubscriber;
   }
 
-  removeSubscriber(id) { 
+  async removeSubscriber(id) { 
     const index = this._subscribers.findIndex(s => s._id === id);
     const sub = this._subscribers.find(s => s._id === id);
     if (index == -1) return;
@@ -77,8 +105,8 @@ class Channel {
 
   addSubscriber() { 
     const subscriber = new Subscriber(this.pubSub, this.channelName);
-    subscriber.on('unsubscribe', (id) => {  
-      this.removeSubscriber(id)
+    subscriber.on('unsubscribe', async (id) => {  
+      await this.removeSubscriber(id)
     });
     this._subscribers.push(subscriber);
     return subscriber;
@@ -94,10 +122,10 @@ class Channel {
 
   async end() {
     await this.pubSub.unsubscribe(this.channelName, () => {});
-      this._subscribers.forEach((s) => {
-        s.kill();
-        this.removeSubscriber(s._id)
-      });
+    await Promise.all(this._subscribers.map(s => {
+      s.kill()
+      this.removeSubscriber(s._id);
+    }));
   }
 }
 
