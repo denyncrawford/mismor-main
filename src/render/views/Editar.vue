@@ -203,7 +203,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(['dataNode']),
+    ...mapState(['dataNode', 'rtm']),
     getFileUrl () {
         return path => `http://localhost:8080/ipfs/${path}`
     },

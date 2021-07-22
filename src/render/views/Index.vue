@@ -141,6 +141,7 @@ export default {
         }
       }))
       await entries.deleteOne({ shortId });
+      await this.updates.trigger('update', shortId);
       await this.fetchEntries();
     },
     async paginate(n) {
@@ -151,12 +152,14 @@ export default {
     },
     async publish(id) {
       await this.updates.trigger('update', id);
+      await this.updates.trigger('notification', id);
     }
   },
   async mounted() {
     this.db = await globalDriver.getDb()
-    this.updates = await this.rtm.subscribe('dbUpdates');
-    this.updates.on('update', async () => {
+    this.updates = await this.rtm.subscribe('update');
+    this.updates.on('update', async (id) => {
+      console.log(id);
       await this.fetchEntries({});
     })
     await this.fetchEntries({})
