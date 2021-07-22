@@ -165,6 +165,7 @@ export default {
   data() {
     return {
       db: '',
+      updates: null,
       availbleClients: [],
       clients: [],
       corte: '',
@@ -258,6 +259,7 @@ export default {
             await this.discartAsset(a)
           }));
           await entries.updateOne({ shortId }, {$set: prepared })
+          await this.updates.trigger('update', shortId)
           this.$router.go(-1)
       },
       async back() {
@@ -323,10 +325,14 @@ export default {
       await mkdir(dataFolder);
     }
     this.db = await globalDriver.getDb()
+    this.updates = await this.rtm.subscribe('updates');
     const registro = await this.db.collection('entries').findOne({ shortId });
     if (!registro) return this.$router.go(-1);
     this.availbleClients = registro.clients
     Object.assign(this.$data, registro);
+  },
+  async beforeRouteLeave() {
+    await this.updates.unsubscribe();
   }
 }
 </script>

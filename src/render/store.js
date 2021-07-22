@@ -104,6 +104,34 @@ export const store = createStore({
   }
 })
 
+class DBDriver {
+  constructor() {
+    this.config = store.state.config;
+    this.client = null
+    this.db = null;
+  }
+  async getDb() {
+    if (this.db) return this.db
+    await this.connect();
+    return this.db;
+  }
+  async connect() {
+    this.client = new MongoClient(this.config.host, { 
+      useNewUrlParser: true, 
+      useUnifiedTopology: true
+    });
+    this.connection = await this.client.connect();
+    this.db = this.connection.db(this.config.name);
+  }
+  async reconnect(config) {
+    this.config = config || store.state.config;
+    await this.client.close(true);
+    this.connection = null;
+    this.db = null;
+    await this.connect();
+  }
+}
+
 export const globalDriver = new DBDriver();
 
 export const persistentStorage = new Store();

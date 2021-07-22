@@ -97,7 +97,7 @@ export default {
   data() {
     return {
       db: "",
-      channel: null,
+      updates: null,
       entries: [],
       page: 0,
       maxPageView: 10,
@@ -150,21 +150,19 @@ export default {
       await this.fetchEntries();
     },
     async publish(id) {
-      //await this.dataNode.pubsub.publish('denyncrawford:notification', id)
-      await this.channel.trigger('new', id);
-      await this.channel.unsubscribe('notifications')
-      console.log(await this.rtm.ls())
+      await this.updates.trigger('update', id);
     }
   },
   async mounted() {
     this.db = await globalDriver.getDb()
-    this.channel = await this.rtm.subscribe('notifications');
-    await this.rtm.subscribe('messages');
-    console.log(await this.rtm.ls())
+    this.updates = await this.rtm.subscribe('dbUpdates');
+    this.updates.on('update', async () => {
+      await this.fetchEntries({});
+    })
     await this.fetchEntries({})
   },
   async beforeRouteLeave() {
-    await this.channel.unsubscribe();
+    await this.updates.unsubscribe();
   }
 }
 </script>

@@ -167,6 +167,7 @@ export default {
   data() {
     return {
       db: '',
+      updates: null,
       availbleClients: [],
       clients: [],
       corte: '',
@@ -203,7 +204,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(['dataNode']),
+    ...mapState(['dataNode', 'rtm']),
     getFileUrl () {
         return path => `http://localhost:8080/ipfs/${path}`
     },
@@ -256,6 +257,7 @@ export default {
             }
           }
           await entries.insert(prepared)
+          this.updates.trigger('update', prepared.shortId);
           this.$router.go(-1)
       },
       async selectFile() {
@@ -315,6 +317,10 @@ export default {
       await mkdir(dataFolder);
     }
     this.db = await globalDriver.getDb()
+    this.updates = await this.rtm.subscribe('updates');
+  },
+  async beforeRouteLeave() {
+    await this.updates.unsubscribe();
   }
 }
 </script>
