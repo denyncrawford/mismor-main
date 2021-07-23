@@ -142,7 +142,7 @@ export default {
       }))
       await entries.deleteOne({ shortId });
       await this.updates.trigger('update', shortId);
-      await this.fetchEntries();
+      //await this.fetchEntries();
     },
     async paginate(n) {
       if (this.page === 0 && !n || this.page === this.totalPages - 1 && n) return;
