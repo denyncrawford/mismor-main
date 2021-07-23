@@ -125,7 +125,7 @@ class DBDriver {
   }
   async reconnect(config) {
     this.config = config || store.state.config;
-    await this.client.close(true);
+    await this.client?.close(true);
     this.connection = null;
     this.db = null;
     await this.connect();

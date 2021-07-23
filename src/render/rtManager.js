@@ -146,6 +146,7 @@ class Subscriber extends EventEmitter {
 
   async unsubscribe() {
     await Promise.resolve(this.emit('unsubscribe', this._id));
+    await Promise.resolve(this.emit('flush', this.channelName));
   }
   
   kill() {
