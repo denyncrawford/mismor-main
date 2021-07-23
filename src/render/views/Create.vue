@@ -257,7 +257,7 @@ export default {
             }
           }
           await entries.insert(prepared)
-          this.updates.trigger('update', prepared.shortId);
+          await this.updates.trigger('update', prepared.shortId);
           this.$router.go(-1)
       },
       async selectFile() {
