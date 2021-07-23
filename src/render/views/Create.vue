@@ -318,6 +318,9 @@ export default {
     }
     this.db = await globalDriver.getDb()
     this.updates = await this.rtm.subscribe('updates');
+    this.updates.on('update', (data) => {
+      console.log(data)
+    })
   },
   async beforeRouteLeave() {
     await this.updates.unsubscribe();
