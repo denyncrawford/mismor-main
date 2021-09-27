@@ -217,7 +217,6 @@ const unlink = promisify(fs.unlink);
 const { app, dialog } = require("electron").remote;
 const programFolder = app.getPath("userData");
 const dataFolder = join(programFolder, "/data");
-const progress = require('progress-stream');
 import { globalDriver } from "./../store";
 import { mapState } from "vuex";
 export default {

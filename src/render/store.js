@@ -6,6 +6,9 @@ const { MongoClient } = require("mongodb");
 const Store = require('electron-store')
 const { createController } = require('ipfsd-ctl')
 const ipfsHttpModule = require('ipfs-http-client');
+const fs = require('fs');
+const { promisify } = require('util');
+const exist = promisify(fs.exists);
 const ipfsBin = require.resolve('ipfs/src/cli.js');
 const { join } = require('path');
 const { app } = require('electron').remote
@@ -128,7 +131,7 @@ class DBDriver {
   }
   async reconnect(config) {
     this.config = config || store.state.config;
-    await this.client.close(true);
+    await this.client?.close(true);
     this.connection = null;
     this.db = null;
     await this.connect();

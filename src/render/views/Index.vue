@@ -142,7 +142,7 @@ export default {
       }))
       await entries.deleteOne({ shortId });
       await this.updates.trigger('update', shortId);
-      await this.fetchEntries();
+      //await this.fetchEntries();
     },
     async paginate(n) {
       if (this.page === 0 && !n || this.page === this.totalPages - 1 && n) return;
@@ -157,10 +157,10 @@ export default {
   },
   async mounted() {
     this.db = await globalDriver.getDb()
-    this.updates = await this.rtm.subscribe('update');
-    this.updates.on('update', async (id) => {
-      console.log(id);
-      await this.fetchEntries({});
+    this.updates = await this.rtm.subscribe('updates');
+    this.updates.on('update', async (data) => {
+      console.log(data);
+      await this.fetchEntries({})
     })
     await this.fetchEntries({})
   },
