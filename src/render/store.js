@@ -1,12 +1,15 @@
 import { createStore } from "vuex";
+const fs = require('fs')
+const { promisify } = require('util')
+const unlink = promisify(fs.unlink)
 const { MongoClient } = require("mongodb");
 const Store = require('electron-store')
 const { createController } = require('ipfsd-ctl')
 const ipfsHttpModule = require('ipfs-http-client');
 const ipfsBin = require.resolve('ipfs/src/cli.js');
 const { join } = require('path');
-const homedir = require('os').homedir();
 const { app } = require('electron').remote
+const basePath = app.getAppPath();
 
 export const getDataNode = async () => {
   const ipfsd = await createController({
@@ -15,9 +18,8 @@ export const getDataNode = async () => {
     remote: false,
     type: 'js',
     ipfsOptions: {
-      init: true,
       start: true,
-      repo: join(homedir, '/.jsipfs'),
+      repo: join(basePath, '/.jsipfs'),
       relay: {
         enabled: true,
         hop: {
@@ -54,18 +56,19 @@ export const getDataNode = async () => {
         }
       }
     },
+    test: false,
     disposable: false
   });
   await ipfsd.init();
-  await ipfsd.start();
-  app.on('before-quit', async (evt) => {
-    evt.preventDefault()
-    await ipfsd.api.stop()
-  });
-  window.addEventListener('beforeunload', async () => {
-    await ipfsd.api.stop()
-  })
-  return ipfsd.api
+  try {
+    await ipfsd.start();
+    return ipfsd.api
+  } catch (e) {
+    deleteFolderRecursive(join(basePath, '/.jsipfs', '/repo.lock'))
+    await unlink(join(basePath, '/.jsipfs', '/api'))
+    await ipfsd.start();
+    return ipfsd.api
+  }
 }
 
 export const store = createStore({
@@ -135,3 +138,17 @@ class DBDriver {
 export const globalDriver = new DBDriver();
 
 export const persistentStorage = new Store();
+
+const deleteFolderRecursive = (path) => {
+  if( fs.existsSync(path) ) {
+      fs.readdirSync(path).forEach(function(file) {
+        var curPath = path + "/" + file;
+          if(fs.lstatSync(curPath).isDirectory()) { // recurse
+              deleteFolderRecursive(curPath);
+          } else { // delete file
+              fs.unlinkSync(curPath);
+          }
+      });
+      fs.rmdirSync(path);
+    }
+};

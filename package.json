@@ -46,9 +46,7 @@
       "allowToChangeInstallationDirectory": true,
       "deleteAppDataOnUninstall": false
     },
-    "asarUnpack": [
-
-    ]
+    "asarUnpack": []
   },
   "dependencies": {
     "@heroicons/vue": "^1.0.1",
@@ -68,6 +66,7 @@
     "mongodb-client-encryption": "^1.2.6",
     "multiaddr": "^9.0.2",
     "nanoid": "^3.1.23",
+    "progress-stream": "^1.2.0",
     "socket.io": "^4.1.3",
     "vue": "^3.0.5",
     "vue-router": "^4.0.0-beta.13",
