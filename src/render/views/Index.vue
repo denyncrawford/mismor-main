@@ -15,7 +15,7 @@
       </router-link>
       <router-link to="/create" class="ml-5 hover:border-blue-700 hover:text-blue-700 rounded font-bold px-4 py-2 text-sm border border-dashed border-gray-400">
         <CheckIcon class="h-5 w-5 mb-1"/>
-        Administrar Estados
+        Administrar Hooks
       </router-link>
     </div>
     <div class="mb-20">

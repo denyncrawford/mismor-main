@@ -64,7 +64,7 @@
 
 <script>
 import { ArrowLeftIcon } from '@heroicons/vue/outline'
-import { mapMutations, mapState } from 'vuex'
+import { mapState } from 'vuex'
 import { persistentStorage as state, globalDriver } from './../store';
 const { Multiaddr } = require('multiaddr')
 
@@ -98,9 +98,15 @@ export default {
       this.$store.commit('toggleLoading')
       state.set("config", this.config);
       this.$store.commit('setConfig', this.config)
-      await globalDriver.reconnect();
-      this.$store.commit('toggleLoading')
-      !this.fisrtLoad ? this.$router.go(-1) : this.$router.push('/dashboard')
+      try {
+        await globalDriver.reconnect();
+        this.$store.commit('toggleLoading')
+        if (this.$route.query.redirect) return this.$router.push(`/${this.$route.query.redirect}`)
+        !this.fisrtLoad ? this.$router.go(-1) : this.$router.push('/dashboard')
+      } catch (error) {
+        this.$store.commit('toggleLoading')
+        return this.$message.error('Error al conectar con la base de datos')
+      }
     },
     async connectNode() {
       this.$store.commit('toggleLoading');
