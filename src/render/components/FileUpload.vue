@@ -1,96 +1,107 @@
 <template>
-  <div class="grid grid-cols-3 gap-4">
-    <transition-group name="slide-down">
-      <div
-        @mouseenter="file.showActions = true"
-        @mouseleave="file.showActions = false"
-        v-for="file in assets"
-        :style="{
-          'background-image': 'url(' + getFileUrl(file) + ')',
-        }"
-        :key="file.uid"
-        class="
-          w-32
-          h-32
-          cursor-pointer
-          rounded
-          border
-          bg-cover bg-center bg-no-repeat
-          border-gray-400 border-dashed
-          flex
-          items-center
-          justify-center
-          relative
-          overflow-hidden
-        "
-      >
-        <div
-          v-show="file.showActions && !file.isUploading"
+  <div class="w-full">
+      <draggable 
+        tag="transition-group" :component-data="{ tag: 'div', type: 'transition-group', name: 'slide-down'}"
+        class="w-full grid grid-cols-3 gap-4"
+        v-model="assets"
+        @end="setAssetOrderByDrag"
+        item-key="uid">
+        <template #footer>
+          <div
+            key="footer"
+            @click="selectFile"
+            class="
+              w-32
+              h-32
+              cursor-pointer
+              hover:border-blue-700
+              rounded
+              border border-gray-400 border-dashed
+              flex
+              items-center
+              justify-center
+            "
+          >
+            <PlusIcon class="w-5 h-5" />
+          </div>
+        </template>
+        <template #item="{ element }">
+         <div
+          @mouseenter="element.showActions = true"
+          @mouseleave="element.showActions = false"
+          :style="{
+            'background-image': 'url(' + getFileUrl(element) + ')',
+          }"
           class="
+            w-32
+            h-32
+            cursor-pointer
+            rounded
+            border
+            bg-cover bg-center bg-no-repeat
+            border-gray-400 border-dashed
             flex
             items-center
             justify-center
-            w-full
-            h-full
-            bg-opacity-50 bg-gray-900
-            transition
-            absolute
-            top-0
-            left-0
+            relative
+            overflow-hidden
           "
         >
-          <div class="flex">
-            <EyeIcon
-              @click="openFile(file)"
-              class="hover:text-blue-700 w-5 h-5 mx-2 text-white"
-            />
-            <FolderIcon
-              @click="openFolder(file)"
-              class="hover:text-blue-700 w-5 h-5 mx-2 text-white"
-            />
-            <TrashIcon
-              @click="deleteFile(file)"
-              class="hover:text-blue-700 w-5 h-5 mx-2 text-white"
-            />
+          <div
+            v-show="element.showActions && !element.isUploading"
+            class="
+              flex
+              items-center
+              justify-center
+              w-full
+              h-full
+              bg-opacity-50 bg-gray-900
+              transition
+              absolute
+              top-0
+              left-0
+            "
+          >
+            <div class="flex">
+              <EyeIcon
+                @click="openFile(element)"
+                class="hover:text-blue-700 w-5 h-5 mx-2 text-white"
+              />
+              <FolderIcon
+                @click="openFolder(element)"
+                class="hover:text-blue-700 w-5 h-5 mx-2 text-white"
+              />
+              <TrashIcon
+                @click="deleteFile(element)"
+                class="hover:text-blue-700 w-5 h-5 mx-2 text-white"
+              />
+            </div>
+          </div>
+          <div
+            v-show="element.isUploading"
+            class="
+              flex
+              items-center
+              justify-center
+              w-full
+              h-full
+              transition
+              bg-opacity-10 bg-gray-900
+              absolute
+              top-0
+              left-0
+            "
+          >
+            <div class="flex">
+              <div class="dot-falling"></div>
+            </div>
           </div>
         </div>
-        <div
-          v-show="file.isUploading"
-          class="
-            flex
-            items-center
-            justify-center
-            w-full
-            h-full
-            transition
-            bg-opacity-10 bg-gray-900
-            absolute
-            top-0
-            left-0
-          "
-        >
-          <div class="flex">
-            <div class="dot-falling"></div>
-          </div>
-        </div>
-      </div>
-    </transition-group>
-    <div
-      @click="selectFile"
-      class="
-        w-32
-        h-32
-        cursor-pointer
-        hover:border-blue-700
-        rounded
-        border border-gray-400 border-dashed
-        flex
-        items-center
-        justify-center
-      "
-    >
-      <PlusIcon class="w-5 h-5" />
-    </div>
+        </template>
+      </draggable>
+    <!-- <transition-group name="slide-down">
+      
+    </transition-group> -->
   </div>
 </template>
 
@@ -107,6 +118,7 @@ const dataFolder = join(programFolder, "/data");
 import { UltimateTextToImage as TextToImage} from "ultimate-text-to-image";
 import { mapState } from "vuex";
 import { nanoid } from "nanoid";
+import Draggable from 'vuedraggable'
 import {
   PlusIcon,
   FolderIcon,
@@ -141,7 +153,7 @@ export default {
         if (!file.path) return "";
         return `http://localhost:8080/ipfs/${file.path}`;
       };
-    },
+    }
   },
   props: ["assets", "deletedAssets"],
   methods: {
@@ -177,6 +189,7 @@ export default {
           } = await this.dataNode.files.stat(filepath);
           const file = this.assets.findIndex((file) => file.uid === uid);
           this.assets[file].path = fileCid;
+          this.assets[file].order = this.assets.length;
           this.assets[file].isUploading = false;
         })
       );
@@ -205,6 +218,15 @@ export default {
       }
       return joined;
     },
+    setAssetOrderByDrag() {
+      this.assets.forEach((file, index) => {
+        file.order = index;
+      });
+      console.log(this.assets);
+    },
+    sortAssets() {
+      this.assets.sort((a, b) =>  a.order - b.order);
+    },
     async deleteFile(file) {
       file.isUploading = true;
       const joined = join(dataFolder, `${file.path}.${file.ext}`);
@@ -231,6 +253,21 @@ export default {
     FolderIcon,
     EyeIcon,
     TrashIcon,
+    Draggable,
   },
 };
 </script>
+
+<style scoped>
+.slide-down-enter-active {
+  animation: fadeInUp; /* referring directly to the animation's @keyframe declaration */
+  animation-duration: .5s; /* don't forget to set a duration! */
+}
+.slide-down-leave-active {
+  animation: fadeOutDown; /* referring directly to the animation's @keyframe declaration */
+  animation-duration: .5s; /* don't forget to set a duration! */
+}
+.slide-down-move {
+  transition: transform 0.5s;
+}
+</style>

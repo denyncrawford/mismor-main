@@ -13,17 +13,19 @@
         <PlusIcon class="h-5 w-5 mb-1"/>
         Crear Ingreso
       </router-link>
-      <router-link to="/create" class="ml-5 hover:border-blue-700 hover:text-blue-700 rounded font-bold px-4 py-2 text-sm border border-dashed border-gray-400">
+      <router-link to="/hooks" class="ml-5 hover:border-blue-700 hover:text-blue-700 rounded font-bold px-4 py-2 text-sm border border-dashed border-gray-400">
         <CheckIcon class="h-5 w-5 mb-1"/>
         Administrar Hooks
       </router-link>
     </div>
     <div class="mb-20">
-      <h1 class="mb-2">Todos los Registros</h1>
+      <h1 class="mb-5">Todos los Registros</h1>
+      <!-- sarchbar -->
       <div class="w-full rounded border border-dashed border-gray-400">
         <table class="w-full table-auto">
           <thead class="text-sm py-5">
             <tr class="py-5">
+              <th>Snapshot</th>
               <th>Cliente</th>
               <th>ID</th>
               <th>Corte</th>
@@ -37,6 +39,9 @@
           <tbody class="text-xs text-center py-5 overflow-hidden">
             <transition-group name="slide-td">
               <tr class="py-5 cursor-pointer hover:bg-gray-300" v-for="entry in entries" :key="entry.shortId">
+                <td class="px-5 py-5 flex items-center justify-center">
+                  <div :style="{backgroundImage: `url(${snapshot(entry.assets)})`}" class="h-10 w-10 bg-center bg-no-repeat bg-contain" alt=""></div>
+                </td>
                 <td>{{ ellipsis(entry.clients.map(e => e.name).join(' - ')) }}</td>
                 <td>{{ ellipsis(entry.shortId) }}</td>
                 <td>{{ ellipsis(entry.corte || "--") }}</td>
@@ -93,6 +98,7 @@ import { UsersIcon,
 import dayjs from 'dayjs'
 import { mapState } from 'vuex'
 import { globalDriver } from "./../store.js";
+import { UltimateTextToImage as TextToImage} from "ultimate-text-to-image";
 export default {
   data() {
     return {
@@ -101,12 +107,38 @@ export default {
       entries: [],
       page: 0,
       maxPageView: 10,
-      totalPages: 0
+      totalPages: 0,
+      allowedImageExtensions: [
+          "jpg",
+          "jpeg",
+          "png",
+          "gif",
+          "bmp",
+          "webp",
+          "svg",
+      ]
     }
   },
   computed: {
     pageSkip() {
       return this.page * this.maxPageView
+    },
+    snapshot() {
+      return assets => {
+        const noAssets = new TextToImage('N/A', {
+            customHeight: 3000,
+            maxWidth: 3000,
+            width: 3000,
+            height: 3000,
+            fontSize: 700,
+            align: "center",
+            valign: "middle",
+          }).render().toDataUrl();
+        if (!assets.length) return noAssets;
+        const file = assets.find(file => this.allowedImageExtensions.includes(file.ext));
+        if (!file) return noAssets;
+        return `http://localhost:8080/ipfs/${file.path}`;
+      }
     },
     formatDate() {
       return date => dayjs(date).format('DD-MM-YYYY')
@@ -153,6 +185,9 @@ export default {
     async publish(id) {
       await this.updates.trigger('update', id);
       await this.updates.trigger('notification', id);
+    },
+    async copy(data) {
+      await navigator.clipboard.writeText(data);
     }
   },
   async mounted() {

@@ -65,7 +65,15 @@ const router = createRouter({
       meta: {
           title: 'Editar Cliente'
       }
-    }
+    },
+    {
+      path: '/hooks',
+      name: 'hooks',
+      component: () => import("./views/Hooks.vue"),
+      meta: {
+          title: 'Hooks'
+      }
+    },
   ],
   scrollBehavior (to, from, savedPosition) {
     return { x: 0, y: 0 }

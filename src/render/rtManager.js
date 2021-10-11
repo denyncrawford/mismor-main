@@ -1,13 +1,12 @@
-
 import EventEmitter from 'events'
-import { nanoid } from 'nanoid'
+import { nanoid as generate } from 'nanoid'
 
 export default class RtManager extends EventEmitter {
   constructor (pubSub, identifier = 'rtm_') {
     super();
     this._pubSub = pubSub;
     this._id = identifier;
-    this._stamp = nanoid();
+    this._stamp = generate();
     this._channels = [];
   }
 
@@ -82,15 +81,15 @@ class Channel {
   constructor (channelName, pubSub) {
     this.channelName = channelName;
     this.pubSub = pubSub;
-    this._id = nanoid();
+    this._id = generate();
     this._subscribers = [];
   }
 
   async init() {
       const firstSubscriber = this.addSubscriber();
       await this.pubSub.subscribe(this.channelName, async msg => {
-          const prepare = JSON.parse(new TextDecoder().decode(msg.data));
-          await Promise.all(this._subscribers.map(s => s.emit(prepare.eventName, prepare.data, msg)))
+          const prepare = JSON.parse(typeof msg.data === 'string' ? msg.data : new TextDecoder().decode(msg.data));
+          await Promise.all(this._subscribers.map(s => prepare.broadcast === s._id ? null : s.emit(prepare.eventName, prepare.data, msg)))
       })
     return firstSubscriber;
   }
@@ -132,7 +131,7 @@ class Channel {
 class Subscriber extends EventEmitter {
   constructor(pubSub, channelName) {
     super();
-    this._id = nanoid();
+    this._id = generate();
     this._pubSub = pubSub;
     this.channelName = channelName;
     this.available = true;
@@ -141,6 +140,12 @@ class Subscriber extends EventEmitter {
   async trigger(eventName, data) {
     if (!this.available) return;
     const prepare = JSON.stringify({ eventName, data });
+    await this._pubSub.publish(this.channelName, prepare);
+  }
+
+  async broadcast(eventName, data) {
+    if (!this.available) return;
+    const prepare = JSON.stringify({ eventName, data, broadcast: this._id });
     await this._pubSub.publish(this.channelName, prepare);
   }
 

@@ -4,7 +4,7 @@
       <h1 @click="$router.go(-1)" class="cursor-pointer px-2 py-1"><ArrowLeftIcon class="h-5 w-5 mb-1"/></h1>
       <h1 class="bg-black text-xs px-2 py-1 text-white">Clientes</h1>
     </div>
-    <h1 class="mb-2">Editar Cliente</h1>
+    <h1 class="mb-2">Acciones</h1>
     <div class="flex mb-5">
       <router-link to="/createClient" class="hover:border-blue-700 hover:text-blue-700 rounded font-bold px-4 py-2 text-sm border border-dashed border-gray-400">
         <PlusIcon class="h-5 w-5 mb-1"/>

@@ -5,6 +5,9 @@
       <router-link to="/dashboard" class="group cursor-pointer ml-5">
         <HomeIcon class="h-5 w-5 group-hover:text-blue-700 text-gray-500"/>
       </router-link>
+      <router-link to="/hooks" class="group ml-5 cursor-pointer">
+        <DuplicateIcon class="h-5 w-5 group-hover:text-blue-700 text-gray-500"/>
+      </router-link>
       <router-link to="/config" class="group ml-5 cursor-pointer">
         <CogIcon class="h-5 w-5 group-hover:text-blue-700 text-gray-500"/>
       </router-link>
@@ -18,14 +21,16 @@
 <script>
 import { SearchIcon, 
          HomeIcon, 
-         CogIcon 
+         CogIcon,
+         DuplicateIcon
 } from '@heroicons/vue/outline'
 
 export default {
   components: {
     SearchIcon,
     HomeIcon,
-    CogIcon
+    CogIcon,
+    DuplicateIcon
   }
 }
 </script>

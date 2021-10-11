@@ -47,6 +47,12 @@ export const getDataNode = async () => {
           Swarm: [
             "/ip4/0.0.0.0/tcp/4002",
             "/ip4/127.0.0.1/tcp/4003/ws",
+            "/dns4/star.thedisco.zone/tcp/9090/wss/p2p-webrtc-star",
+            "/dns6/star.thedisco.zone/tcp/9090/wss/p2p-webrtc-star"
+          ],
+          Bootstrap: [
+            "/dns6/ipfs.thedisco.zone/tcp/4430/wss/p2p/12D3KooWChhhfGdB9GJy1GbhghAAKCUR99oCymMEVS4eUcEy67nt",
+            "/dns4/ipfs.thedisco.zone/tcp/4430/wss/p2p/12D3KooWChhhfGdB9GJy1GbhghAAKCUR99oCymMEVS4eUcEy67nt",
           ],
           Gateway: "/ip4/0.0.0.0/tcp/8080",
           API: "/ip4/127.0.0.1/tcp/5001",

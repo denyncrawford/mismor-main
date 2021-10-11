@@ -147,6 +147,8 @@ export default {
       details: '',
       assets: [],
       quantity: '',
+      pipeline: "",
+      hook: "",
       state: 30,
       discartedAssets: [],
       dates: {

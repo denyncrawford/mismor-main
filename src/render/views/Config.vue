@@ -31,7 +31,7 @@
          <div class="px-5 w-full">
            <h1 class="mb-2">Direcciones Swarm</h1>
            <div class="mb-5">
-             <p v-for="i in nodeAddresses" :key="i" class="text-xxs w-full mb-2 font-bold border-black text-green-700 py-2 px-5 cursor-pointer border border-dashed rounded">{{ i }}</p>
+             <p @click="copy(i)" v-for="i in nodeAddresses" :key="i" class="text-xxs w-full mb-2 font-bold border-black text-green-700 py-2 px-5 cursor-pointer border border-dashed rounded">{{ i }}</p>
            </div>
          </div>
        </div>
@@ -107,6 +107,10 @@ export default {
         this.$store.commit('toggleLoading')
         return this.$message.error('Error al conectar con la base de datos')
       }
+    },
+    async copy(data) {
+      await navigator.clipboard.writeText(data);
+      this.$message.success('Copiado al portapapeles')
     },
     async connectNode() {
       this.$store.commit('toggleLoading');

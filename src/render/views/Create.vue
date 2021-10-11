@@ -152,6 +152,8 @@ export default {
       details: "",
       assets: [],
       quantity: "",
+      pipeline: "",
+      hook: "",
       state: 30,
       deletedAssets: [],
       dates: {
