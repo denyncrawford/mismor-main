@@ -222,7 +222,6 @@ export default {
       this.assets.forEach((file, index) => {
         file.order = index;
       });
-      console.log(this.assets);
     },
     sortAssets() {
       this.assets.sort((a, b) =>  a.order - b.order);

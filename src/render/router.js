@@ -1,83 +1,91 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from "vue-router";
 const router = createRouter({
   history: createWebHashHistory(),
   routes: [
     {
-        path: '/',
-        name: 'loading',
-        component: () => import("./components/Loading.vue"),
-        meta: {
-            title: 'Cargando...'
-        }
+      path: "/",
+      name: "loading",
+      component: () => import("./components/Loading.vue"),
+      meta: {
+        title: "Cargando...",
+      },
     },
     {
-        path: '/dashboard',
-        name: 'dashboard',
-        component: () => import("./views/Index.vue"),
-        meta: {
-            title: 'Panel de control'
-        }
+      path: "/dashboard",
+      name: "dashboard",
+      component: () => import("./views/Index.vue"),
+      meta: {
+        title: "Panel de control",
+      },
     },
     {
-        path: '/create',
-        name: 'create',
-        component: () => import("./views/Create.vue"),
-        meta: {
-            title: 'Ingresar registro'
-        }
+      path: "/create",
+      name: "create",
+      component: () => import("./views/Create.vue"),
+      meta: {
+        title: "Ingresar registro",
+      },
     },
     {
-        path: '/edit/:id',
-        name: 'edit',
-        component: () => import("./views/Editar.vue"),
-        meta: {
-            title: 'Editar registro'
-        }
+      path: "/edit/:id",
+      name: "edit",
+      component: () => import("./views/Editar.vue"),
+      meta: {
+        title: "Editar registro",
+      },
     },
     {
-      path: '/clients',
-      name: 'clients',
+      path: "/view/:id",
+      name: "view",
+      component: () => import("./views/ViewEntry.vue"),
+      meta: {
+        title: "Ver ficha",
+      },
+    },
+    {
+      path: "/clients",
+      name: "clients",
       component: () => import("./views/Clients.vue"),
       meta: {
-          title: 'Control de clientes'
-      }
+        title: "Control de clientes",
+      },
     },
     {
-      path: '/config',
-      name: 'configure',
+      path: "/config",
+      name: "configure",
       component: () => import("./views/Config.vue"),
       meta: {
-          title: 'Configurar'
-      }
+        title: "Configurar",
+      },
     },
     {
-      path: '/createClient',
-      name: 'createClient',
+      path: "/createClient",
+      name: "createClient",
       component: () => import("./views/CreateClient.vue"),
       meta: {
-          title: 'Crear Cliente'
-      }
+        title: "Crear Cliente",
+      },
     },
     {
-      path: '/editClient/:id',
-      name: 'editClient',
+      path: "/editClient/:id",
+      name: "editClient",
       component: () => import("./views/EditClient.vue"),
       meta: {
-          title: 'Editar Cliente'
-      }
+        title: "Editar Cliente",
+      },
     },
     {
-      path: '/hooks',
-      name: 'hooks',
+      path: "/hooks",
+      name: "hooks",
       component: () => import("./views/Hooks.vue"),
       meta: {
-          title: 'Hooks'
-      }
+        title: "Hooks",
+      },
     },
   ],
-  scrollBehavior (to, from, savedPosition) {
-    return { x: 0, y: 0 }
-  }
-})
+  scrollBehavior(to, from, savedPosition) {
+    return { x: 0, y: 0 };
+  },
+});
 
-export default router
+export default router;

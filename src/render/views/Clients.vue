@@ -1,10 +1,7 @@
 <template>
   <div class="px-10 w-full absolute">
-    <div class="flex items-center mb-5">
-      <h1 @click="$router.go(-1)" class="cursor-pointer px-2 py-1"><ArrowLeftIcon class="h-5 w-5 mb-1"/></h1>
-      <h1 class="bg-black text-xs px-2 py-1 text-white">Clientes</h1>
-    </div>
-    <h1 class="mb-2">Acciones</h1>
+    <heading-back>Clientes</heading-back>
+    <h1 class="mb-2 mt-5">Acciones</h1>
     <div class="flex mb-5">
       <router-link to="/createClient" class="hover:border-blue-700 hover:text-blue-700 rounded font-bold px-4 py-2 text-sm border border-dashed border-gray-400">
         <PlusIcon class="h-5 w-5 mb-1"/>
@@ -36,16 +33,9 @@
                     <div class="flex">
                       <EyeIcon class="hover:text-blue-700 w-5 h-5 mx-2"/>
                       <router-link :to="{ name: 'editClient', params: { id: client.shortId }}"> <PencilAltIcon class="hover:text-blue-700 w-5 h-5 mx-2"/> </router-link>
-                      <el-popconfirm
-                        title="Por favor confirmar el borrado de este cliente."
-                        @confirm="removeClient(client.shortId, client.assets)"
-                      >
-                        <template #reference>
-                          <div>
-                            <TrashIcon class="hover:text-blue-700 w-5 h-5 mx-2"/>
-                          </div>
-                        </template>
-                      </el-popconfirm>
+                      <div>
+                        <TrashIcon @click="removeClient(client.shortId, client.assets)" class="hover:text-blue-700 w-5 h-5 mx-2"/>
+                      </div>
                     </div>
                   </div>
                 </td>
@@ -112,6 +102,8 @@ export default {
       this.clients = await clients.find(query).skip(this.pageSkip).limit(this.maxPageView).sort({_id: -1}).toArray()
     },
     async removeClient(shortId, assets) {
+      const ok = await this.$confirm('¿Deseas borrar estre cliente?')
+      if (!ok) return;
       const clients = this.db.collection("clients");
       await Promise.all(assets.map(async a => {
         await this.dataNode.files.rm(`/${a.filename}`)

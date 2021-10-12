@@ -1,10 +1,7 @@
 <template>
   <div class="px-10 w-full absolute">
-    <div class="flex items-center mb-5">
-      <h1 @click="$router.go(-1)" class="cursor-pointer px-2 py-1"><ArrowLeftIcon class="h-5 w-5 mb-1"/></h1>
-      <h1 class="bg-black text-xs px-2 py-1 text-white">Hook pipelines</h1>
-    </div>
-    <h1 class="mb-5">Administrar pipelines</h1>
+    <heading-back>Hook Pipelines</heading-back>
+    <h1 class="mb-5 text-gray-600 mt-5">Administrar pipelines</h1>
     <div class="w-full">
       <draggable 
         tag="transition-group" :component-data="{ tag: 'div', type: 'transition-group', name: 'flip'}"
@@ -22,13 +19,11 @@
         </template>
         <template #item="{element}">
           <div class="flex border border-dashed rounded-lg hover:border-blue-500 cursor-pointer p-5">
-            <el-tooltip :show-after="2000" :content="element.description" placement="top">
-              <div class="flex flex-col">
-                <h1 class="text-md font-bold">{{ element.name }}</h1>
-                <h1 class="text-xs">{{ elipsis(20, element.description) }}</h1>
-                <h1 class="text-xs">Hooks: {{element.hooks?.length}}</h1>
-              </div>
-            </el-tooltip>
+            <div class="flex flex-col">
+              <h1 class="text-md font-bold">{{ element.name }}</h1>
+              <h1 class="text-xs">{{ elipsis(20, element.description) }}</h1>
+              <h1 class="text-xs">Hooks: {{element.hooks?.length}}</h1>
+            </div>
           </div>
         </template>
       </draggable>

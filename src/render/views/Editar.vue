@@ -1,10 +1,7 @@
 <template>
   <div class="px-10 w-full absolute">
-    <div class="flex items-center mb-5">
-      <h1 @click="back" class="cursor-pointer px-2 py-1"><ArrowLeftIcon class="h-5 w-5 mb-1"/></h1>
-      <h1 class="bg-black text-xs px-2 py-1 text-white">Crear ingreso</h1>
-    </div>
-    <h1 class="mb-2">Formulario de ingreso</h1>
+    <heading-back>Editar Ficha</heading-back>
+    <h1 class="mb-2 ml-5 mt-5">Formulario de cliente</h1>
     <div class="w-9/12 mb-20">
       <div class="flex mt-5">
         <div class="px-5">
@@ -113,6 +110,19 @@
             class="w-full"
             clearable>
           </el-input>
+          <h1 class="mb-2 mt-5">Tags</h1>
+          <el-select
+            :rows="2"
+            placeholder="Escribir tags"
+            v-model="tags"
+            class="w-full"
+            clearable
+            multiple
+            filterable
+            allow-create
+            default-first-option
+          >
+          </el-select>
         </div>
       </div>
       <div class="flex mt-5">
@@ -149,9 +159,11 @@ export default {
       quantity: '',
       pipeline: "",
       hook: "",
-      state: 30,
+      state: "",
+      tags: [],
       discartedAssets: [],
       dates: {
+          updatedAt: '',
           start: '',
           end: ''
       },
@@ -199,7 +211,8 @@ export default {
       async save() {
           this.form.disabled = true;
           const entries = this.db.collection('entries')
-          const { quantity, state, clients, corte, articulo, dibujo, details, assets, priority, dates, shortId } = this.$data;
+          const { quantity, state, clients, corte, articulo, dibujo, details, assets, priority, dates, shortId, tags } = this.$data;
+          dates.updatedAt = new Date().getTime();
           const prepared = {
             clients,
             corte,
@@ -211,7 +224,8 @@ export default {
             priority,
             quantity, 
             state,
-            shortId
+            shortId,
+            tags
           }
           for (const key of Object.keys(this.form.validations)) {
             const { validate, message } = this.form.validations[key]

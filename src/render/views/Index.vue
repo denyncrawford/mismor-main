@@ -21,7 +21,20 @@
     <div class="mb-20">
       <h1 class="mb-5">Todos los Registros</h1>
       <!-- sarchbar -->
-      <div class="w-full rounded border border-dashed border-gray-400">
+      <div class="flex items-center border border-dashed border-gray-400 border-b-0 rounded-tr rounded-tl w-full px-5">
+        <SearchIcon class="h-5 w-5 mr-2"/>
+        <input @input="search" type="text" class="outline-none ring-0 px-5 py-2 text-sm" v-model="searchTerm" placeholder="Escribe aca para buscar...">
+        <div class="flex ml-auto items-center">
+          <h1 class="mr-5 text-sm whitespace-nowrap">Solo activos:</h1>
+          <el-switch @change="fetchEntries(currentQuery || {})" v-model="onlyActive" />
+          <h1 class="ml-5 text-sm whitespace-nowrap">Ordenar por:</h1>
+          <el-select @change="fetchEntries(currentQuery || {})" v-model="orderBy" class="ml-2 border-none outline-none ring-0 px-2 py-1 text-sm w-full">
+            <el-option value="created_at" label="Fecha de creación"></el-option>
+            <el-option value="updated_at" label="Fecha de actualización"></el-option>
+          </el-select>
+        </div>
+      </div>
+      <div class="w-full rounded-br rounded-bl border border-dashed border-gray-400">
         <table class="w-full table-auto">
           <thead class="text-sm py-5">
             <tr class="py-5">
@@ -38,7 +51,7 @@
           </thead>
           <tbody class="text-xs text-center py-5 overflow-hidden">
             <transition-group name="slide-td">
-              <tr class="py-5 cursor-pointer hover:bg-gray-300" v-for="entry in entries" :key="entry.shortId">
+              <tr @dblclick="$router.push({ name: 'view', params: { id: entry.shortId } })" class="py-5 cursor-pointer hover:bg-gray-300" v-for="entry in entries" :key="entry.shortId">
                 <td class="px-5 py-5 flex items-center justify-center">
                   <div :style="{backgroundImage: `url(${snapshot(entry.assets)})`}" class="h-10 w-10 bg-center bg-no-repeat bg-contain" alt=""></div>
                 </td>
@@ -51,18 +64,11 @@
                 <td>{{ entry.priority }}</td>
                 <td> 
                   <div class="flex">
-                    <EyeIcon @click="publish(entry.shortId)" class="hover:text-blue-700 w-5 h-5 mx-2"/>
+                    <router-link :to="{ name: 'view', params: { id: entry.shortId } }"><EyeIcon @click="publish(entry.shortId)" class="hover:text-blue-700 w-5 h-5 mx-2"/></router-link>
                     <router-link :to="{ name: 'edit', params: { id: entry.shortId }}"> <PencilAltIcon class="hover:text-blue-700 w-5 h-5 mx-2"/> </router-link>
-                    <el-popconfirm
-                      title="Por favor confirmar el borrado de este item."
-                      @confirm="removeEntry(entry.shortId, entry.assets)"
-                    >
-                      <template #reference>
-                        <div>
-                          <TrashIcon class="hover:text-blue-700 w-5 h-5 mx-2"/>
-                        </div>
-                      </template>
-                    </el-popconfirm>
+                    <div @click="removeEntry(entry.shortId, entry.assets)">
+                      <TrashIcon class="hover:text-blue-700 w-5 h-5 mx-2"/>
+                    </div>
                   </div>
                 </td>
               </tr>
@@ -93,21 +99,27 @@ import { UsersIcon,
          CheckIcon,
          EyeIcon,
          TrashIcon,
-         PencilAltIcon
+         PencilAltIcon,
+        SearchIcon,
 } from '@heroicons/vue/outline'
 import dayjs from 'dayjs'
 import { mapState } from 'vuex'
 import { globalDriver } from "./../store.js";
-import { UltimateTextToImage as TextToImage} from "ultimate-text-to-image";
+import { searchEntriesByMetadata } from '../services/queries.service.js'
+import NAImage from '../assets/na.png'
 export default {
   data() {
     return {
       db: "",
       updates: null,
       entries: [],
+      searchTerm: "",
       page: 0,
-      maxPageView: 10,
+      maxPageView: 6,
+      orderBy: "updated_at",
+      onlyActive: false,
       totalPages: 0,
+      currentQuery: null,
       allowedImageExtensions: [
           "jpg",
           "jpeg",
@@ -125,18 +137,9 @@ export default {
     },
     snapshot() {
       return assets => {
-        const noAssets = new TextToImage('N/A', {
-            customHeight: 3000,
-            maxWidth: 3000,
-            width: 3000,
-            height: 3000,
-            fontSize: 700,
-            align: "center",
-            valign: "middle",
-          }).render().toDataUrl();
-        if (!assets.length) return noAssets;
+        if (!assets.length) return NAImage;
         const file = assets.find(file => this.allowedImageExtensions.includes(file.ext));
-        if (!file) return noAssets;
+        if (!file) return NAImage;
         return `http://localhost:8080/ipfs/${file.path}`;
       }
     },
@@ -155,15 +158,22 @@ export default {
     CheckIcon,
     EyeIcon,
     TrashIcon,
-    PencilAltIcon
+    PencilAltIcon,
+    SearchIcon,
   },
   methods: {
     async fetchEntries(query) {
       const entries = this.db.collection("entries");
-      this.totalPages = Math.ceil(Number(await entries.count()) / this.maxPageView);
-      this.entries = await entries.find(query).skip(this.pageSkip).limit(this.maxPageView).sort({_id: -1}).toArray()
+      if (this.onlyActive) query = { $and: [ query, { "dates.end": { $exists: true }, $where: "this.dates.end.length === 0" } ] };
+      console.log(query);
+      this.totalPages = this.currentQuery ? Math.ceil(Number(await entries.countDocuments(this.currentQuery)) / this.maxPageView) : Math.ceil(Number(await entries.count()) / this.maxPageView);
+      if (this.page > this.totalPages - 1) this.page = this.page === 0 ? 0 : this.totalPages - 1;
+      const sortObj = this.orderBy === "created_at" ? { _id : -1 } : { 'dates.updatedAt': -1 };
+      this.entries = await entries.find(query).skip(this.pageSkip).limit(this.maxPageView).sort(sortObj).toArray()
     },
     async removeEntry(shortId, assets) {
+      const ok = await this.$confirm('¿Deseas borrar esta entrada?')
+      if (!ok) return;
       const entries = this.db.collection("entries");
       await Promise.allSettled(assets.map(async a => {
         try {
@@ -174,16 +184,26 @@ export default {
       }))
       await entries.deleteOne({ shortId });
       await this.updates.trigger('update', shortId);
-      //await this.fetchEntries();
+      this.fetchEntries(this.currentQuery || {});
     },
     async paginate(n) {
       if (this.page === 0 && !n || this.page === this.totalPages - 1 && n) return;
       if (this.page > this.totalPages) this.page = this.totalPages;
       this.page = n ? this.page + 1 : this.page - 1;
-      await this.fetchEntries();
+      await this.fetchEntries(this.currentQuery || {});
+    },
+    async search() {
+      if (!this.searchTerm) { 
+        this.currentQuery = null;
+        return this.fetchEntries({});
+      }
+      const query = searchEntriesByMetadata(this.searchTerm);
+      this.currentQuery = query;
+      await this.fetchEntries(query);
+      this.page = 0;
     },
     async publish(id) {
-      await this.updates.trigger('update', id);
+      await this.updates.broadcast('update', id);
       await this.updates.trigger('notification', id);
     },
     async copy(data) {
@@ -194,10 +214,9 @@ export default {
     this.db = await globalDriver.getDb()
     this.updates = await this.rtm.subscribe('updates');
     this.updates.on('update', async (data) => {
-      console.log(data);
       await this.fetchEntries({})
     })
-    await this.fetchEntries({})
+    this.fetchEntries({})
   },
   async beforeRouteLeave() {
     await this.updates.unsubscribe();
@@ -209,14 +228,17 @@ export default {
 td, th {
   padding: 7px;
 } 
-
-.slide-td-leave-active {
-  animation: fadeOutRight; /* referring directly to the animation's @keyframe declaration */
-  animation-duration: .5s; /* don't forget to set a duration! */
+.slide-td-move {
+  transition: transform .2s;
 }
 
 .slide-td-enter-active {
-  animation: fadeInLeft; /* referring directly to the animation's @keyframe declaration */
+  animation: fadeInUp; /* referring directly to the animation's @keyframe declaration */
+  animation-duration: .5s; /* don't forget to set a duration! */
+}
+
+.slide-td-leave-active {
+  animation: fadeOutUp; /* referring directly to the animation's @keyframe declaration */
   animation-duration: .5s; /* don't forget to set a duration! */
 }
 

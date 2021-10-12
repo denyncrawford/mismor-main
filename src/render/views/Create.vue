@@ -1,12 +1,7 @@
 <template>
   <div class="px-10 w-full absolute">
-    <div class="flex items-center mb-5">
-      <h1 @click="$router.go(-1)" class="cursor-pointer px-2 py-1">
-        <ArrowLeftIcon class="h-5 w-5 mb-1" />
-      </h1>
-      <h1 class="bg-black text-xs px-2 py-1 text-white">Crear ingreso</h1>
-    </div>
-    <h1 class="mb-2">Formulario de ingreso</h1>
+    <heading-back>Crear Ficha</heading-back>
+    <h1 class="mb-2 ml-5 mt-5">Formulario de ingreso</h1>
     <div class="w-9/12 mb-20">
       <div class="flex mt-5">
         <div class="px-5">
@@ -112,6 +107,19 @@
             clearable
           >
           </el-input>
+          <h1 class="mb-2 mt-5">Tags</h1>
+          <el-select
+            :rows="2"
+            placeholder="Escribir tags"
+            v-model="tags"
+            class="w-full"
+            clearable
+            multiple
+            filterable
+            allow-create
+            default-first-option
+          >
+          </el-select>
         </div>
       </div>
       <div class="flex mt-5">
@@ -154,9 +162,11 @@ export default {
       quantity: "",
       pipeline: "",
       hook: "",
-      state: 30,
+      state: Math.floor(Math.random() * 100),
+      tags: [],
       deletedAssets: [],
       dates: {
+        updatedAt: new Date().getTime(),
         start: "",
         end: "",
       },
@@ -192,6 +202,9 @@ export default {
     FileUpload
   },
   methods: {
+    log(val) {
+      console.log(val);
+    },
     async fetchClients(query) {
       this.form.loading = true;
       const clients = this.db.collection("clients");
@@ -216,6 +229,7 @@ export default {
         assets,
         priority,
         dates,
+        tags,
       } = this.$data;
       const prepared = {
         clients,
@@ -228,6 +242,7 @@ export default {
         priority,
         quantity,
         state,
+        tags,
         shortId: nanoid(10),
       };
       for (const key of Object.keys(this.form.validations)) {

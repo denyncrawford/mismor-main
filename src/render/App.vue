@@ -5,6 +5,7 @@
       <component :is="Component" />
     </transition>
   </router-view>
+  <div id="confirm"></div>
   <Loading />
 </template>
 

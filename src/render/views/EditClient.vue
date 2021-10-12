@@ -1,10 +1,7 @@
 <template>
   <div class="px-10 w-full absolute">
-    <div class="flex items-center mb-5">
-      <h1 @click="$router.go(-1)" class="cursor-pointer px-2 py-1"><ArrowLeftIcon class="h-5 w-5 mb-1"/></h1>
-      <h1 class="bg-black text-xs px-2 py-1 text-white">Crear cliente</h1>
-    </div>
-    <h1 class="mb-2">Formulario de cliente</h1>
+    <heading-back>Crear cliente</heading-back>
+    <h1 class="mb-2 mt-5">Formulario de cliente</h1>
     <div class="w-9/12 mb-20">
       <div class="flex mt-5">
         <div class="px-5">
