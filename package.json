@@ -15,11 +15,12 @@
   },
   "build": {
     "appId": "xxx@gmail.com",
+    "asar": false,
+    "npmRebuild": false,
     "electronDownload": {
       "mirror": "https://npm.taobao.org/mirrors/electron/"
     },
     "files": [
-      "!node_modules",
       "dist/main/**",
       "dist/render/**"
     ],
@@ -46,7 +47,9 @@
       "allowToChangeInstallationDirectory": true,
       "deleteAppDataOnUninstall": false
     },
-    "asarUnpack": []
+    "asarUnpack": [
+      "*.node"
+    ]
   },
   "dependencies": {
     "@heroicons/vue": "^1.0.1",

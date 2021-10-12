@@ -12,7 +12,7 @@ const rmdir = promisify(fs.rmdir);
 const ipfsBin = require.resolve("ipfs/src/cli.js");
 const { join } = require("path");
 const { app } = require("electron").remote;
-const basePath = app.getAppPath();
+const basePath = app.getPath('userData');
 
 export const getDataNode = async () => {
   const ipfsd = await createController({
@@ -21,7 +21,6 @@ export const getDataNode = async () => {
     remote: false,
     type: "js",
     ipfsOptions: {
-      start: true,
       repo: join(basePath, "/.jsipfs"),
       relay: {
         enabled: true,
@@ -68,11 +67,12 @@ export const getDataNode = async () => {
     test: false,
     disposable: false,
   });
-  await ipfsd.init();
   try {
+    await ipfsd.init();
     await ipfsd.start();
     return ipfsd.api;
   } catch (e) {
+    console.log(e);
     await deleteFolderRecursive(join(basePath, "/.jsipfs", "/repo.lock"));
     await unlink(join(basePath, "/.jsipfs", "/api"));
     await ipfsd.start();
