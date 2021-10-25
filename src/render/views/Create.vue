@@ -97,7 +97,7 @@
       </div>
       <div class="flex flex-col items-center mt-5">
         <div class="px-5">
-          <h1 class="mb-2">Colores de fondo</h1>
+          <h1 class="mb-2">Fondos de tela</h1>
           <div class="grid relative gap-4 grid-cols-8">
             <transition-group name="slide-down">
               <div @click="bgColors.splice(i, 1)" @mouseenter="color.isIconShow = true" @mouseleave="color.isIconShow = false"  :style="{ backgroundColor: color.color }" v-for="(color, i) in bgColors" :key="color.id" class="h-16 cursor-pointer w-16 relative flex items-center justify-center rounded-lg border border-dashed hover:border-blue-500">

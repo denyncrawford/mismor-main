@@ -54,7 +54,6 @@ export default {
     this.setRTM(new RtManager(this.dataNode.pubsub, "mismor-realtime"));
     const channel = await this.rtm.subscribe("updates");
     channel.on("notification", async (msg) => {
-      console.log(msg);
       this.handleMessage(msg);
     });
     if (!config) {

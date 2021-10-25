@@ -65,7 +65,7 @@
                 <td> 
                   <div class="flex">
                     <router-link :to="{ name: 'view', params: { id: entry.shortId } }"><EyeIcon @click="publish(entry.shortId)" class="hover:text-blue-700 w-5 h-5 mx-2"/></router-link>
-                    <router-link :to="{ name: 'edit', params: { id: entry.shortId }}"> <PencilAltIcon class="hover:text-blue-700 w-5 h-5 mx-2"/> </router-link>
+                    <router-link :to="{ name: 'edit', params: { id: entry.shortId } }"><PencilAltIcon class="hover:text-blue-700 w-5 h-5 mx-2"/></router-link>
                     <div @click="removeEntry(entry.shortId, entry.assets)">
                       <TrashIcon class="hover:text-blue-700 w-5 h-5 mx-2"/>
                     </div>
@@ -165,7 +165,6 @@ export default {
     async fetchEntries(query) {
       const entries = this.db.collection("entries");
       if (this.onlyActive) query = { $and: [ query, { "dates.end": { $exists: true }, $where: "this.dates.end.length === 0" } ] };
-      console.log(query);
       this.totalPages = this.currentQuery ? Math.ceil(Number(await entries.countDocuments(this.currentQuery)) / this.maxPageView) : Math.ceil(Number(await entries.count()) / this.maxPageView);
       if (this.page > this.totalPages - 1) this.page = this.page === 0 ? 0 : this.totalPages - 1;
       const sortObj = this.orderBy === "created_at" ? { _id : -1 } : { 'dates.updatedAt': -1 };

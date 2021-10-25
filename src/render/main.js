@@ -3,7 +3,7 @@ import App from './App.vue'
 import './index.css'
 import ElementUI from 'element-plus';
 import VueConfirmPlugin from 'v3confirm'
-import 'element-plus/lib/theme-chalk/index.css';
+import 'element-plus/dist/index.css';
 import './theme/index.css'
 import "animate.css/animate.css";
 import "three-dots/dist/three-dots.css"

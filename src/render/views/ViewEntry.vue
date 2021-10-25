@@ -3,7 +3,7 @@
     <heading-back class="ml-10">Visualizar ficha</heading-back>
     <div class="w-full flex-col flex mt-10 pb-20 px-10 relative">
       <!-- <div class="bg-white absolute w-full h-full"></div> -->
-      <div id="printIt" class="p-10 overflow-hidden border-dashed border rounded-lg w-full">
+      <div ref="printIt" id="printIt" class="p-10 overflow-hidden border-dashed border rounded-lg w-full">
         <div class="w-full flex">
           <div>
             <h1 class="text-2xl font-bold mb-5 whitespace-nowrap flex items-center">Ficha <span class="text-blue-500 ml-2 text-sm">#{{entry.shortId}}</span></h1>
@@ -102,7 +102,7 @@
       </div>
       <div class="w-full text-center flex mt-10">
         <div class="ml-auto mr-auto flex items-center">
-          <p v-print="printObj" class="cursor-pointer text-center text-blue-500">Imprimir ficha</p>
+          <p @click="print" class="cursor-pointer text-center text-blue-500">Imprimir ficha</p>
           <p class="mx-5"> - </p>
           <router-link :to="{ name: 'edit', params: { id: entry.shortId }}"><p class="cursor-pointer text-center text-blue-500">Editar ficha</p></router-link>
         </div>
@@ -115,26 +115,35 @@
 import QrCode from 'qrcode'
 import { mapState } from "vuex";
 import { globalDriver } from '../store.js'
-import print from 'vue3-print-nb'
+import printJs from 'print-js'
 import Pantone from '../components/Pantone.vue'
 import { getClosestColor } from "nearest-pantone"
+import html2canvas from 'html2canvas';
 export default {
   data() {
     return {
       entry: {},
       db: null,
       updates: null,
-      printObj: {
-        id: "printIt",
-      }
-
     }
-  },
-  directives: {
-    print
   },
   components: {
     Pantone
+  },
+  methods: {
+    async print() {
+      const canv = await html2canvas(this.$refs.printIt, {
+        scale: 5,
+        allowTaint: true,
+        letterRendering: 1
+      });
+      const dataURL = canv.toDataURL();
+      printJs({
+        printable: dataURL,
+        type: 'image',
+        showModal: true
+      })
+    }
   },
   computed: {
     ...mapState(['rtm']),

@@ -101,11 +101,14 @@
       </div>
       <div class="flex flex-col items-center mt-5">
         <div class="px-5">
-          <h1 class="mb-2">Colores de fondo</h1>
+          <h1 class="mb-2">Fondos de tela</h1>
           <div class="grid relative gap-4 grid-cols-8">
             <transition-group name="slide-down">
               <div @click="bgColors.splice(i, 1)" @mouseenter="color.isIconShow = true" @mouseleave="color.isIconShow = false"  :style="{ backgroundColor: color.color }" v-for="(color, i) in bgColors" :key="color.id" class="h-16 cursor-pointer w-16 relative flex items-center justify-center rounded-lg border border-dashed hover:border-blue-500">
                 <TrashIcon v-show="color.isIconShow" class="w-5 h-5 text-black"/>
+                <div v-show="color.isIconShow" class="absolute z-50 bottom-full mb-5 left-0">
+                    <Pantone :pantone="getPantoneObject(color.color)" />
+                </div>
               </div>
             </transition-group>
             <div @click="isPickerOpen = !isPickerOpen" class="h-16 cursor-pointer w-16 relative flex items-center justify-center rounded-lg border border-dashed hover:border-blue-500">
@@ -142,6 +145,9 @@
                   <div @mouseenter="element.isIconShow = true" @mouseleave="element.isIconShow = false"  :style="{ backgroundColor: element.color }" class="h-16 cursor-pointer w-16 relative flex items-center justify-center rounded-lg border border-dashed hover:border-blue-500">
                     <TrashIcon @click="colors.splice(colors.findIndex(e => e.id == element.id), 1); setAssetOrderByDrag()" v-show="element.isIconShow" class="w-5 h-5 text-black"/>
                     <h1 class="font-bold" v-show="!element.isIconShow"> {{ element.order }} </h1>
+                    <div v-show="element.isIconShow" class="absolute z-50 bottom-full mb-5 left-0">
+                    <Pantone :pantone="getPantoneObject(element.color)" />
+                </div>
                   </div>
                 </template>
                 <template #footer>
@@ -220,7 +226,9 @@ import { nanoid } from 'nanoid'
 import { mapState } from "vuex";
 import { globalDriver } from "./../store";
 import FileUpload from '../components/FileUpload.vue'
+import Pantone from '../components/Pantone.vue'
 import Draggable from 'vuedraggable'
+import { getClosestColor } from "nearest-pantone"
 export default {
   data() {
     return {
@@ -275,6 +283,9 @@ export default {
     ...mapState(['rtm']),
     prepareClient() {
       return item => ({ shortId: item.shortId, name: item.name })
+    },
+    getPantoneObject() {
+      return color => getClosestColor(color)
     }
   },
   components: {
@@ -283,7 +294,8 @@ export default {
     PlusIcon,
     TrashIcon,
     ColorPicker,
-    Draggable
+    Draggable,
+    Pantone
   },
   methods: {
       addBgColor() {
