@@ -15,7 +15,7 @@
               h-32
               cursor-pointer
               hover:border-blue-700
-              rounded
+              rounded-lg
               border border-gray-400 border-dashed
               flex
               items-center
@@ -36,7 +36,7 @@
             w-32
             h-32
             cursor-pointer
-            rounded
+            rounded-lg
             border
             bg-cover bg-center bg-no-repeat
             border-gray-400 border-dashed

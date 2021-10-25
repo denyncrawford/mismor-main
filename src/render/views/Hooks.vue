@@ -1,6 +1,6 @@
 <template>
   <div class="px-10 w-full absolute">
-    <heading-back>Hook Pipelines</heading-back>
+    <heading-back>Pipelines y Máquinas</heading-back>
     <h1 class="mb-5 text-gray-600 mt-5">Administrar pipelines</h1>
     <div class="w-full">
       <draggable 

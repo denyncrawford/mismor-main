@@ -11,9 +11,6 @@
       <router-link to="/config" class="group ml-5 cursor-pointer">
         <CogIcon class="h-5 w-5 group-hover:text-blue-700 text-gray-500"/>
       </router-link>
-      <div class="group ml-5 cursor-pointer">
-        <SearchIcon class="h-5 w-5 group-hover:text-blue-700 text-gray-500"/>
-      </div>
     </div>
   </div>
 </template>

@@ -54,11 +54,42 @@
               <h1 class="text-lg font-bold text-blue-500">prioridad:</h1><h1 class="text-lg ml-2 font-bold"> {{ entry.priority || 0 }}</h1>
             </div>
         </div>
+        <h1 class="text-2xl mt-5 font-bold mb-5">Colores</h1>
+        <div class="flex w-full">
+          <div v-if="entry.colors?.length || entry.bgColors?.length" class="w-full">
+            <div class="rounded-lg border border-dashed p-2">
+              <h1 class="text-sm font-bold text-gray-500 mb-2">Colores y orden</h1>
+              <div v-show="entry.colors?.length" class="grid grid-cols-8 gap-4">
+                <div @mouseenter="color.isIconShow = true" @mouseleave="color.isIconShow = false" :style="{ backgroundColor: color.color }" v-for="color in entry.colors" :key="color.id" class="relative rounded-lg cursor-pointer z-30 h-8 flex items-center justify-center">
+                  <h1 class="text-sm text-white font-bold">
+                    {{ color.order }}
+                  </h1>
+                  <div v-show="color.isIconShow" class="absolute bottom-full z-50 mb-5 left-0">
+                    <Pantone :pantone="getPantoneObject(color.color)" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="rounded-lg border border-dashed mt-5 p-2">
+              <h1 class="text-sm font-bold text-gray-500 mb-2">Fondos te tela</h1>
+              <div v-show="entry.bgColors?.length" class="grid grid-cols-8 gap-4">
+                <div @mouseenter="color.isIconShow = true" @mouseleave="color.isIconShow = false" :style="{ backgroundColor: color.color }" v-for="color in entry.bgColors" :key="color.id" class="relative cursor-pointer rounded-lg h-8 flex items-center justify-center">
+                  <div v-show="color.isIconShow" class="absolute z-50 bottom-full mb-5 left-0">
+                    <Pantone :pantone="getPantoneObject(color.color)" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-else>
+            <h1 class="text-gray-500">No hay colores para mostrar</h1>
+          </div>
+        </div>
         <h1 class="text-2xl mt-5 font-bold mb-5">Medios</h1>
         <div class="flex">
           <div v-if="entry.assets?.length" class="grid grid-cols-4 gap-4">
             <div v-for="asset in entry.assets" :key="asset.uid" class="w-24 border-dashed border relative rounded-lg overflow-hidden h-24 flex items-center justify-center">
-              <div :style="{ backgroundImage: `url(${getFileUrl(asset)})` }" class="absolute w-full h-full filter blur-sm bg-cover bg-center bg-no-repeat" >
+              <div class="absolute w-full h-full filter bg-cover grayscale invert bg-center bg-no-repeat" >
 
               </div>
               <img class="max-w-full max-h-full z-10" :src="getFileUrl(asset)" alt="">
@@ -71,7 +102,7 @@
       </div>
       <div class="w-full text-center flex mt-10">
         <div class="ml-auto mr-auto flex items-center">
-          <p v-print="'#printIt'" class="cursor-pointer text-center text-blue-500">Imprimir ficha</p>
+          <p v-print="printObj" class="cursor-pointer text-center text-blue-500">Imprimir ficha</p>
           <p class="mx-5"> - </p>
           <router-link :to="{ name: 'edit', params: { id: entry.shortId }}"><p class="cursor-pointer text-center text-blue-500">Editar ficha</p></router-link>
         </div>
@@ -85,16 +116,25 @@ import QrCode from 'qrcode'
 import { mapState } from "vuex";
 import { globalDriver } from '../store.js'
 import print from 'vue3-print-nb'
+import Pantone from '../components/Pantone.vue'
+import { getClosestColor } from "nearest-pantone"
 export default {
   data() {
     return {
       entry: {},
       db: null,
       updates: null,
+      printObj: {
+        id: "printIt",
+      }
+
     }
   },
   directives: {
     print
+  },
+  components: {
+    Pantone
   },
   computed: {
     ...mapState(['rtm']),
@@ -122,6 +162,9 @@ export default {
         if (!file.path) return "";
         return `http://localhost:8080/ipfs/${file.path}`;
       };
+    },
+    getPantoneObject() {
+      return color => getClosestColor(color)
     }
   },
   async mounted() {
